@@ -1,5 +1,29 @@
 @use 'abstracts' as ds;
 
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: ds.$font-weight-regular;
+  font-display: swap;
+  src: url('../assets/fonts/inter-400.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: ds.$font-weight-medium;
+  font-display: swap;
+  src: url('../assets/fonts/inter-500.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: ds.$font-weight-bold;
+  font-display: swap;
+  src: url('../assets/fonts/inter-700.ttf') format('truetype');
+}
+
 :root {
   --color-background: #{ds.$color-background};
   --color-foreground: #{ds.$color-on-primary};
@@ -19,9 +43,29 @@ html,
 body {
   min-height: 100%;
   margin: 0;
+  overflow-x: clip;
   background: ds.$color-background;
   color: ds.$color-on-primary;
   font-family: ds.$font-family-primary;
   font-size: ds.$font-size-body-medium;
   font-weight: ds.$font-weight-regular;
+}
+
+body.is-overlay-open {
+  overflow: hidden;
+}
+
+button,
+a,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
 }
