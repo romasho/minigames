@@ -2,6 +2,6 @@ export interface AppState {
   activeGame: string | null;
 }
 
-export const store: AppState = {
+export const store: Readonly<AppState> = {
   activeGame: null,
 };

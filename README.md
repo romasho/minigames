@@ -4,7 +4,30 @@ A collection of small, lightweight games.
 
 ## Getting started
 
-Clone the repository and add each game in its own feature directory. The project currently has no external dependencies.
+Requirements: Node.js 20.19 or newer.
+
+```bash
+npm install
+npm run dev
+```
+
+Vite serves the development build with hot module replacement. Use
+`npm run build` for a type-checked, optimized production bundle in `dist` and
+`npm run preview` to inspect that bundle locally.
+
+## Quality checks
+
+```bash
+npm run typecheck
+npm run lint
+npm run format:check
+npm run validate
+```
+
+ESLint uses strict, type-aware TypeScript rules and the Unicorn recommended
+configuration. Prettier controls formatting. Husky validates commit messages
+against the RS School Conventional Commits format and prevents pushes when lint
+or formatting checks fail.
 
 ## Project structure
 
