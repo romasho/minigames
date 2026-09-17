@@ -1,5 +1,29 @@
 @use 'abstracts' as ds;
 
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: ds.$font-weight-regular;
+  font-display: swap;
+  src: url('../assets/fonts/inter-400.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: ds.$font-weight-medium;
+  font-display: swap;
+  src: url('../assets/fonts/inter-500.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: ds.$font-weight-bold;
+  font-display: swap;
+  src: url('../assets/fonts/inter-700.ttf') format('truetype');
+}
+
 :root {
   --color-background: #{ds.$color-background};
   --color-foreground: #{ds.$color-on-primary};

@@ -2,13 +2,592 @@
 
 .home-page {
   min-height: 100%;
-  padding-inline: ds.$size-15;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  width: min(100%, ds.$layout-max-width);
+  height: ds.$hero-height-desktop;
+  margin-inline: auto;
+  padding-block: ds.$size-14;
+  padding-inline: clamp(ds.$size-5, 6.25vw, ds.$size-15);
+  overflow: hidden;
+  align-items: center;
+  background: ds.$color-footer;
+  isolation: isolate;
+
+  &__background,
+  &__overlay {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  &__background {
+    z-index: -2;
+    top: ds.$hero-background-offset-block;
+    left: ds.$hero-background-offset-inline;
+    width: ds.$hero-background-scale;
+    height: ds.$hero-background-scale;
+    object-fit: cover;
+    opacity: ds.$opacity-hero-image;
+  }
+
+  &__overlay {
+    z-index: -1;
+    inset: 0;
+    background: rgba(ds.$color-footer, ds.$opacity-hero-overlay);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: ds.$size-3;
+    width: ds.$hero-card-width-desktop;
+    padding: ds.$size-6;
+    border: ds.$dialog-border-width solid ds.$color-on-primary;
+    border-radius: ds.$radius-extra-large;
+    background: ds.$color-background;
+    box-shadow: ds.$shadow-level-3;
+    font-family: ds.$font-family-secondary;
+  }
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    color: ds.$color-on-primary;
+    font-size: ds.$font-size-display-large;
+    font-weight: ds.$font-weight-bold;
+    line-height: 1.1;
+  }
+
+  p {
+    color: ds.$color-on-background;
+    font-size: ds.$font-size-body-large;
+    font-weight: ds.$font-weight-medium;
+    line-height: 1.5;
+  }
+
+  &__button {
+    width: fit-content;
+    min-height: ds.$button-height-large;
+    padding: ds.$button-large-padding-block ds.$button-large-padding-inline;
+    border: ds.$control-border-width solid ds.$color-on-primary;
+    border-radius: ds.$radius-small;
+    background: ds.$color-primary;
+    color: ds.$color-on-primary;
+    font-size: ds.$font-size-body-large;
+    font-weight: ds.$font-weight-bold;
+    line-height: normal;
+    transition:
+      background ds.$transition-fast ease,
+      box-shadow ds.$transition-fast ease,
+      transform ds.$transition-fast ease;
+
+    &:hover {
+      background: ds.$color-primary-soft;
+      box-shadow: ds.$shadow-level-1;
+    }
+
+    &:active {
+      box-shadow: none;
+      transform: translate(ds.$size-0-5, ds.$size-0-5);
+    }
+
+    &:focus-visible {
+      @include ds.focus-ring;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: ds.$opacity-disabled;
+    }
+  }
 
   @include ds.respond-at-most('tablet') {
-    padding-inline: ds.$size-3;
+    height: ds.$hero-height-tablet;
+    padding: ds.$size-5;
+
+    &__background {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-position: center;
+    }
+
+    &__content {
+      gap: ds.$size-2;
+      width: ds.$hero-card-width-tablet;
+      padding: ds.$size-4;
+    }
+
+    h1 {
+      font-size: ds.$font-size-display-medium;
+    }
+
+    p {
+      font-size: ds.$font-size-body-medium;
+    }
+
+    &__button {
+      min-height: ds.$button-height-medium;
+      padding: ds.$button-medium-padding-block ds.$button-medium-padding-inline;
+      font-size: ds.$font-size-label-large;
+    }
   }
 
   @include ds.respond-at-most('mobile') {
-    padding-inline: ds.$size-2;
+    height: ds.$hero-height-mobile;
+    padding: ds.$size-2;
+
+    &__background {
+      object-position: center;
+    }
+
+    &__content {
+      width: 100%;
+      padding: ds.$size-3;
+      border-radius: ds.$radius-large;
+      box-shadow: ds.$shadow-level-2;
+    }
+
+    h1 {
+      font-size: ds.$font-size-headline-large;
+    }
+
+    p {
+      font-size: ds.$font-size-body-small;
+    }
+
+    &__button {
+      min-height: ds.$button-height-small;
+      padding: ds.$button-small-padding-block ds.$button-small-padding-inline;
+      font-size: ds.$font-size-label-large;
+    }
+  }
+}
+
+.games-carousel {
+  width: min(100%, ds.$layout-max-width);
+  margin-inline: auto;
+  padding: ds.$size-10 clamp(ds.$size-5, 6.25vw, ds.$size-15);
+  color: ds.$color-on-primary;
+
+  &__heading-row {
+    display: flex;
+    margin-bottom: ds.$size-4;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  h2 {
+    margin: 0;
+    font-family: ds.$font-family-secondary;
+    font-size: ds.$font-size-display-medium;
+    line-height: 1.15;
+  }
+
+  &__arrows {
+    display: flex;
+    gap: ds.$size-2;
+  }
+
+  &__arrow {
+    display: grid;
+    width: ds.$size-6;
+    height: ds.$size-6;
+    padding: 0;
+    border: ds.$control-border-width solid ds.$color-on-primary;
+    border-radius: ds.$radius-full;
+    place-items: center;
+    background: ds.$color-primary;
+    box-shadow: ds.$shadow-level-1;
+    color: ds.$color-on-primary;
+    font-size: ds.$font-size-headline-small;
+    font-weight: ds.$font-weight-bold;
+    transition:
+      background ds.$transition-fast ease,
+      box-shadow ds.$transition-fast ease,
+      transform ds.$transition-fast ease;
+
+    &:hover {
+      background: ds.$color-primary-soft;
+    }
+
+    &:active {
+      box-shadow: none;
+      transform: translate(ds.$size-0-5, ds.$size-0-5);
+    }
+
+    &:focus-visible {
+      @include ds.focus-ring;
+    }
+
+    &[aria-disabled='true'] {
+      cursor: not-allowed;
+    }
+  }
+
+  &__viewport {
+    overflow: hidden;
+  }
+
+  &__track {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: ds.$size-3;
+  }
+
+  &__indicators {
+    display: flex;
+    gap: ds.$size-1;
+    margin-top: ds.$size-4;
+    justify-content: center;
+  }
+
+  &__indicator {
+    width: ds.$size-1;
+    height: ds.$size-1;
+    border-radius: ds.$radius-full;
+    background: ds.$color-outline-strong;
+
+    &--active {
+      width: ds.$size-4;
+      background: ds.$color-on-primary;
+    }
+  }
+
+  @include ds.respond-at-most('tablet') {
+    padding: ds.$size-6 ds.$size-5;
+
+    &__track {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: ds.$size-2;
+    }
+  }
+
+  @include ds.respond-at-most('mobile') {
+    padding: ds.$size-5 ds.$size-2;
+
+    &__heading-row {
+      margin-bottom: ds.$size-3;
+    }
+
+    h2 {
+      font-size: ds.$font-size-headline-large;
+    }
+
+    &__arrows {
+      gap: ds.$size-1;
+    }
+
+    &__arrow {
+      width: ds.$size-5;
+      height: ds.$size-5;
+    }
+
+    &__track {
+      gap: ds.$size-1;
+    }
+
+    &__indicators {
+      margin-top: ds.$size-3;
+    }
+  }
+}
+
+.game-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: ds.$control-border-width solid ds.$color-on-primary;
+  border-radius: ds.$radius-large;
+  box-shadow: ds.$shadow-level-2;
+  container-type: inline-size;
+  aspect-ratio: 4 / 3;
+  background: ds.$color-footer-raised;
+
+  &__artwork {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  &__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__information {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: none;
+    padding: ds.$size-2;
+    background: linear-gradient(transparent, rgba(ds.$color-footer, 0.95) 30%);
+    color: ds.$color-white;
+    font-family: ds.$font-family-secondary;
+  }
+
+  &__title {
+    margin: 0 0 ds.$size-1;
+    overflow: hidden;
+    font-size: ds.$font-size-headline-small;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__statistics {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: ds.$font-size-label-large;
+    font-weight: ds.$font-weight-bold;
+  }
+
+  &__likes {
+    color: ds.$color-white;
+  }
+
+  &__rating {
+    color: ds.$color-primary;
+  }
+
+  @container (width >= 288px) {
+    .game-card__information {
+      display: block;
+    }
+  }
+}
+
+.leaderboard {
+  width: min(100%, ds.$layout-max-width);
+  margin-inline: auto;
+  padding: ds.$size-10 clamp(ds.$size-5, 6.25vw, ds.$size-15) ds.$size-14;
+  color: ds.$color-on-primary;
+  font-family: ds.$font-family-secondary;
+
+  &__heading {
+    margin-bottom: ds.$size-4;
+
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h2 {
+      font-size: ds.$font-size-display-medium;
+      line-height: 1.15;
+    }
+
+    p {
+      margin-top: ds.$size-1;
+      color: ds.$color-on-background;
+      font-size: ds.$font-size-body-large;
+      font-weight: ds.$font-weight-medium;
+    }
+  }
+
+  &__table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border: ds.$control-border-width solid ds.$color-on-primary;
+    border-radius: ds.$radius-large;
+    background: ds.$color-surface-subtle;
+    box-shadow: ds.$shadow-level-2;
+    text-align: left;
+  }
+
+  caption {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  th,
+  td {
+    padding: ds.$size-2 ds.$size-3;
+    border-bottom: 0.0625rem solid ds.$color-outline;
+  }
+
+  th {
+    background: ds.$color-secondary;
+    color: ds.$color-on-primary;
+    font-size: ds.$font-size-label-large;
+    font-weight: ds.$font-weight-bold;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  td {
+    color: ds.$color-on-background;
+    font-size: ds.$font-size-body-medium;
+    font-weight: ds.$font-weight-medium;
+    overflow-wrap: anywhere;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  &__rank {
+    width: ds.$size-9;
+    color: ds.$color-on-primary;
+    font-weight: ds.$font-weight-bold;
+    text-align: center;
+  }
+
+  &__player,
+  &__score {
+    color: ds.$color-on-primary;
+    font-weight: ds.$font-weight-bold;
+  }
+
+  &__score {
+    white-space: nowrap;
+  }
+
+  &__streak {
+    color: ds.$color-tertiary;
+    font-weight: ds.$font-weight-bold;
+    white-space: nowrap;
+  }
+
+  &__row--rank-1 .leaderboard__rank {
+    color: ds.$color-primary-strong;
+  }
+
+  &__row--rank-2 .leaderboard__rank {
+    color: ds.$color-on-background-muted;
+  }
+
+  &__row--rank-3 .leaderboard__rank {
+    color: ds.$color-rank-bronze;
+  }
+
+  @include ds.respond-at-most('tablet') {
+    padding: ds.$size-6 ds.$size-5 ds.$size-10;
+
+    th,
+    td {
+      padding: ds.$size-2;
+    }
+
+    th {
+      font-size: ds.$font-size-label-medium;
+    }
+
+    td {
+      font-size: ds.$font-size-body-small;
+    }
+  }
+
+  @include ds.respond-at-most('mobile') {
+    padding: ds.$size-5 ds.$size-2 ds.$size-8;
+
+    &__heading {
+      margin-bottom: ds.$size-3;
+
+      h2 {
+        font-size: ds.$font-size-headline-large;
+      }
+
+      p {
+        font-size: ds.$font-size-body-small;
+      }
+    }
+
+    &__table,
+    tbody,
+    tr,
+    td {
+      display: block;
+    }
+
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    &__table {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    &__row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      margin-bottom: ds.$size-2;
+      overflow: hidden;
+      border: ds.$control-border-width solid ds.$color-on-primary;
+      border-radius: ds.$radius-medium;
+      background: ds.$color-surface-subtle;
+      box-shadow: ds.$shadow-level-1;
+    }
+
+    td {
+      min-width: 0;
+      padding: ds.$size-1 ds.$size-2;
+      border-bottom: 0.0625rem solid ds.$color-outline;
+      font-size: ds.$font-size-label-large;
+      text-align: right;
+
+      &::before {
+        float: left;
+        margin-right: ds.$size-1;
+        color: ds.$color-on-background-muted;
+        content: attr(data-label);
+        font-size: ds.$font-size-label-small;
+        font-weight: ds.$font-weight-bold;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+    }
+
+    td:nth-child(odd) {
+      border-right: 0.0625rem solid ds.$color-outline;
+    }
+
+    td:nth-last-child(-n + 2) {
+      border-bottom: 0;
+    }
+
+    &__rank,
+    &__player,
+    &__score,
+    &__streak {
+      width: auto;
+      text-align: right;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__button,
+  .games-carousel__arrow {
+    transition-duration: ds.$transition-reduced;
   }
 }

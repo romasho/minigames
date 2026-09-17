@@ -19,6 +19,7 @@ $color-on-primary: #242145;
 $color-secondary: #f0eeff;
 $color-tertiary: #3a2ebf;
 $color-like: #ff4b4b;
+$color-rank-bronze: #b66d35;
 $color-error: #b3261e;
 $color-price-free: #0b8a8f;
 $color-outline: #e5e7eb;
@@ -49,6 +50,7 @@ $colors: (
   'secondary': $color-secondary,
   'tertiary': $color-tertiary,
   'like': $color-like,
+  'rank-bronze': $color-rank-bronze,
   'error': $color-error,
   'price-free': $color-price-free,
   'outline': $color-outline,
@@ -79,6 +81,14 @@ $header-height-desktop: 5.3125rem; // 85px
 $header-height-tablet: $size-9;
 $header-height-mobile: $size-8;
 $logo-size: $size-4;
+$hero-height-desktop: 39.1875rem; // 627px
+$hero-height-tablet: 23.9375rem; // 383px
+$hero-height-mobile: 20.6875rem; // 331px
+$hero-card-width-desktop: 40rem; // 640px
+$hero-card-width-tablet: 30rem; // 480px
+$hero-background-scale: 120%;
+$hero-background-offset-inline: -10%;
+$hero-background-offset-block: -14%;
 $control-border-width: 0.125rem; // 2px
 $dialog-border-width: 0.1875rem; // 3px
 $transition-fast: 180ms;
@@ -116,6 +126,8 @@ $burger-line-middle: 0.9375rem; // 15px
 $burger-line-bottom: 1.25rem; // 20px
 $opacity-disabled: 0.5;
 $opacity-overlay: 0.72;
+$opacity-hero-image: 0.2;
+$opacity-hero-overlay: 0.65;
 $z-index-header: 10;
 $z-index-overlay: 100;
 $z-index-overlay-control: 102;
