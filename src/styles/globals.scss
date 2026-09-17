@@ -1,4 +1,13 @@
-@use 'tokens';
+@use 'abstracts' as ds;
+
+:root {
+  --color-background: #{ds.$color-background};
+  --color-foreground: #{ds.$color-on-primary};
+  --color-primary: #{ds.$color-primary};
+  --color-surface: #{ds.$color-surface};
+  --font-family-primary: #{ds.$font-family-primary};
+  --font-family-secondary: #{ds.$font-family-secondary};
+}
 
 *,
 *::before,
@@ -10,4 +19,9 @@ html,
 body {
   min-height: 100%;
   margin: 0;
+  background: ds.$color-background;
+  color: ds.$color-on-primary;
+  font-family: ds.$font-family-primary;
+  font-size: ds.$font-size-body-medium;
+  font-weight: ds.$font-weight-regular;
 }

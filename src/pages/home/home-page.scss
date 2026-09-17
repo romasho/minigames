@@ -1,3 +1,14 @@
+@use '../../styles/abstracts' as ds;
+
 .home-page {
   min-height: 100%;
+  padding-inline: ds.$size-15;
+
+  @include ds.respond-at-most('tablet') {
+    padding-inline: ds.$size-3;
+  }
+
+  @include ds.respond-at-most('mobile') {
+    padding-inline: ds.$size-2;
+  }
 }

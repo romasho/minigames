@@ -1,3 +1,5 @@
+import './header.scss';
+
 /**
  * Creates the shared application header.
  */

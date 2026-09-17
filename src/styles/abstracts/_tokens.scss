@@ -1,0 +1,126 @@
+// Design tokens sourced from the MiniGames Figma guidebook.
+
+// Colors
+$color-white: #ffffff;
+$color-black: #000000;
+$color-background: #f9f8f3;
+$color-on-background: #5f5d75;
+$color-on-background-muted: #737380;
+$color-footer: #1e1b3a;
+$color-footer-raised: #2a264f;
+$color-footer-hover: #3c376e;
+$color-on-footer: #b9b5c9;
+$color-surface: #fff9e5;
+$color-surface-subtle: #fffcf5;
+$color-primary: #ffd02b;
+$color-primary-soft: #fde047;
+$color-primary-strong: #e5bb00;
+$color-on-primary: #242145;
+$color-secondary: #f0eeff;
+$color-tertiary: #3a2ebf;
+$color-like: #ff4b4b;
+$color-error: #b3261e;
+$color-price-free: #0b8a8f;
+$color-outline: #e5e7eb;
+$color-outline-strong: #d2d2d2;
+$color-placeholder: #969696;
+$color-avatar-1: #e9eef6;
+$color-avatar-2: #a3e2c9;
+$color-avatar-3: #bce3ff;
+$color-avatar-4: #ffc6ff;
+$color-avatar-5: #e8dff5;
+
+$colors: (
+  'white': $color-white,
+  'black': $color-black,
+  'background': $color-background,
+  'on-background': $color-on-background,
+  'on-background-muted': $color-on-background-muted,
+  'footer': $color-footer,
+  'footer-raised': $color-footer-raised,
+  'footer-hover': $color-footer-hover,
+  'on-footer': $color-on-footer,
+  'surface': $color-surface,
+  'surface-subtle': $color-surface-subtle,
+  'primary': $color-primary,
+  'primary-soft': $color-primary-soft,
+  'primary-strong': $color-primary-strong,
+  'on-primary': $color-on-primary,
+  'secondary': $color-secondary,
+  'tertiary': $color-tertiary,
+  'like': $color-like,
+  'error': $color-error,
+  'price-free': $color-price-free,
+  'outline': $color-outline,
+  'outline-strong': $color-outline-strong,
+  'placeholder': $color-placeholder,
+);
+
+// Layout and spacing sizes
+$size-0-5: 0.25rem; // 4px
+$size-1: 0.5rem; // 8px
+$size-2: 1rem; // 16px
+$size-3: 1.5rem; // 24px
+$size-4: 2rem; // 32px
+$size-5: 2.5rem; // 40px
+$size-6: 3rem; // 48px
+$size-7: 3.5rem; // 56px
+$size-8: 4rem; // 64px
+$size-9: 4.5rem; // 72px
+$size-10: 5rem; // 80px
+$size-11: 5.5rem; // 88px
+$size-12: 6rem; // 96px
+$size-13: 6.5rem; // 104px
+$size-14: 7rem; // 112px
+$size-15: 7.5rem; // 120px
+$content-max-width: 105rem; // 1680px
+
+// Responsive frames represented in Figma.
+$breakpoints: (
+  'mobile': 23.4375rem,
+  'tablet': 48rem,
+  'desktop': 120rem,
+);
+
+// Corner radii
+$radius-extra-small: $size-0-5;
+$radius-small: $size-1;
+$radius-medium: 0.75rem; // 12px
+$radius-large: $size-2;
+$radius-extra-large: $size-3;
+$radius-full: 624.9375rem; // 9999px
+
+// Button dimensions
+$button-large-padding-block: $size-2;
+$button-large-padding-inline: $size-3;
+$button-medium-padding-block: 0.625rem; // 10px
+$button-medium-padding-inline: 1.25rem; // 20px
+$button-small-padding-block: $size-1;
+$button-small-padding-inline: $size-2;
+$button-icon-padding: $size-1;
+
+// Typography
+$font-family-primary: 'Roboto', sans-serif;
+$font-family-secondary: 'Inter', sans-serif;
+$font-size-display-large: 3.5rem; // 56px
+$font-size-display-medium: 2.25rem; // 36px
+$font-size-display-small: $size-3;
+$font-size-headline-large: $size-4;
+$font-size-headline-medium: $size-3;
+$font-size-headline-small: 1.25rem; // 20px
+$font-size-body-large: 1.125rem; // 18px
+$font-size-body-medium: $size-2;
+$font-size-body-small: 0.875rem; // 14px
+$font-size-label-extra-large: $size-2;
+$font-size-label-large: 0.875rem; // 14px
+$font-size-label-medium: 0.75rem; // 12px
+$font-size-label-small: 0.625rem; // 10px
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+$font-weight-extra-bold: 800;
+
+// Hard-edged elevation from the Figma guidebook.
+$shadow-level-1: $size-0-5 $size-0-5 0 $color-on-primary;
+$shadow-level-2: 0.375rem 0.375rem 0 $color-on-primary; // 6px
+$shadow-level-3: $size-1 $size-1 0 $color-on-primary;

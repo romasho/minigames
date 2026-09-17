@@ -1,3 +1,16 @@
+@use '../../styles/abstracts' as ds;
+
 .app-footer {
+  padding: ds.$size-5 ds.$size-15;
+  background: ds.$color-footer;
+  color: ds.$color-on-footer;
   width: 100%;
+
+  @include ds.respond-at-most('tablet') {
+    padding-inline: ds.$size-3;
+  }
+
+  @include ds.respond-at-most('mobile') {
+    padding-inline: ds.$size-2;
+  }
 }

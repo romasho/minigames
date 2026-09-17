@@ -1,3 +1,5 @@
+import './home-page.scss';
+
 /**
  * Creates the home page container.
  */

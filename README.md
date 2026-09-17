@@ -29,6 +29,26 @@ configuration. Prettier controls formatting. Husky validates commit messages
 against the RS School Conventional Commits format and prevents pushes when lint
 or formatting checks fail.
 
+## Design system
+
+Shared Sass resources live in `src/styles/abstracts`. The token values are based
+on the MiniGames Figma guidebook and include colors, spacing, responsive
+breakpoints, radii, button dimensions, typography, and shadows. Import the
+public Sass API instead of using raw design values:
+
+```scss
+@use 'path/to/styles/abstracts' as ds;
+
+.example {
+  padding: ds.$size-2;
+  color: ds.$color-on-primary;
+
+  @include ds.respond-at-most('tablet') {
+    padding: ds.$size-1;
+  }
+}
+```
+
 ## Project structure
 
 ```text
