@@ -1,4 +1,5 @@
 import heroBackgroundUrl from '../../assets/images/hero-background.png';
+import developerIllustrationUrl from '../../assets/images/illustration-side.png';
 import camperVanCardUrl from '../../assets/games/camper-van-make-it-home-card.jpg';
 import catChessCardUrl from '../../assets/games/cat-chess-card.jpg';
 import cozySolitaireCardUrl from '../../assets/games/cozy-solitaire-card.jpg';
@@ -296,6 +297,52 @@ function createLeaderboardSection(): HTMLElement {
   return section;
 }
 
+function createDeveloperSection(): HTMLElement {
+  const section: HTMLElement = document.createElement('section');
+  section.className = 'game-developer';
+  section.setAttribute('aria-labelledby', 'game-developer-title');
+
+  const content: HTMLDivElement = document.createElement('div');
+  content.className = 'game-developer__content';
+
+  const title: HTMLHeadingElement = document.createElement('h2');
+  title.id = 'game-developer-title';
+  title.textContent = 'Are You a Game Developer?';
+
+  const description: HTMLParagraphElement = document.createElement('p');
+  description.className = 'game-developer__description';
+  description.textContent =
+    "Want to see your game on MiniGames? We're always looking for fun, engaging mini games to add to our platform. Submit your game and reach thousands of players!";
+
+  const button: HTMLButtonElement = document.createElement('button');
+  button.type = 'button';
+  button.className = 'game-developer__button';
+  const buttonIcon: HTMLSpanElement = document.createElement('span');
+  buttonIcon.className = 'game-developer__button-icon';
+  buttonIcon.setAttribute('aria-hidden', 'true');
+  const buttonLabel: HTMLSpanElement = document.createElement('span');
+  buttonLabel.textContent = 'Submit Form';
+  button.append(buttonIcon, buttonLabel);
+
+  const contact: HTMLParagraphElement = document.createElement('p');
+  contact.className = 'game-developer__contact';
+  contact.textContent = 'or contact us at developers@minigames.com';
+
+  const illustration: HTMLDivElement = document.createElement('div');
+  illustration.className = 'game-developer__illustration';
+  illustration.setAttribute('aria-hidden', 'true');
+
+  const image: HTMLImageElement = document.createElement('img');
+  image.src = developerIllustrationUrl;
+  image.alt = '';
+  image.className = 'game-developer__image';
+
+  illustration.append(image);
+  content.append(title, description, button, contact);
+  section.append(content, illustration);
+  return section;
+}
+
 /**
  * Creates the Home page and its semantic content sections.
  */
@@ -306,6 +353,7 @@ export function createHomePage(): HTMLElement {
     createHeroSection(),
     createCarouselSection(),
     createLeaderboardSection(),
+    createDeveloperSection(),
   );
   return page;
 }

@@ -1,16 +1,16 @@
 @use '../../styles/abstracts' as ds;
 
 .app-footer {
-  padding: ds.$size-5 ds.$size-15;
+  padding: ds.$size-5 ds.$container-gutter-responsive;
   background: ds.$color-footer;
   color: ds.$color-on-footer;
   width: 100%;
 
   @include ds.respond-at-most('tablet') {
-    padding-inline: ds.$size-3;
+    padding-inline: ds.$container-gutter-tablet;
   }
 
   @include ds.respond-at-most('mobile') {
-    padding-inline: ds.$size-2;
+    padding-inline: ds.$container-gutter-mobile;
   }
 }

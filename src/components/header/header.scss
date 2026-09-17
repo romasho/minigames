@@ -15,7 +15,7 @@
     width: min(100%, ds.$layout-max-width);
     min-height: calc(ds.$header-height-desktop - ds.$control-border-width);
     margin-inline: auto;
-    padding: ds.$size-3 ds.$size-10;
+    padding: ds.$size-3 ds.$container-gutter-responsive;
   }
 
   &__brand {
@@ -206,7 +206,7 @@
 
     &__inner {
       min-height: calc(ds.$header-height-tablet - ds.$control-border-width);
-      padding: ds.$size-2 ds.$size-5;
+      padding: ds.$size-2 ds.$container-gutter-tablet;
     }
 
     &__brand {
@@ -233,7 +233,7 @@
 
     &__inner {
       min-height: calc(ds.$header-height-mobile - ds.$control-border-width);
-      padding: ds.$size-2;
+      padding: ds.$size-2 ds.$container-gutter-mobile;
     }
 
     &__tablet-sign-up {
