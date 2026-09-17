@@ -23,7 +23,7 @@
     z-index: ds.$z-index-header;
     top: ds.$size-1;
     right: ds.$size-1;
-    display: grid;
+    display: flex;
     width: ds.$size-4;
     height: ds.$size-4;
     padding: 0;
@@ -33,7 +33,8 @@
     color: ds.$color-white;
     font-size: ds.$font-size-display-small;
     line-height: 1;
-    place-items: center;
+    align-items: center;
+    justify-content: center;
   }
 
   &__tabs {
