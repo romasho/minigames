@@ -175,32 +175,45 @@
 .games-carousel {
   width: min(100%, ds.$layout-max-width);
   margin-inline: auto;
-  padding: ds.$section-space-desktop ds.$container-gutter-responsive;
+  padding: ds.$size-2 ds.$container-gutter-mobile ds.$size-4;
   color: ds.$color-on-primary;
 
   &__heading-row {
     display: flex;
-    margin-bottom: ds.$size-4;
+    margin-bottom: ds.$size-2;
     align-items: center;
     justify-content: space-between;
   }
 
   h2 {
+    display: flex;
+    gap: ds.$size-1;
     margin: 0;
+    align-items: center;
     font-family: ds.$font-family-secondary;
-    font-size: ds.$font-size-display-medium;
-    line-height: 1.15;
+    font-size: ds.$font-size-headline-medium;
+    line-height: 1.2;
+
+    &::before {
+      width: 6px;
+      height: ds.$size-3;
+      flex: 0 0 auto;
+      border: ds.$control-border-width solid ds.$color-on-primary;
+      border-radius: ds.$radius-full;
+      background: ds.$color-primary;
+      content: '';
+    }
   }
 
   &__arrows {
-    display: flex;
-    gap: ds.$size-2;
+    display: none;
+    gap: ds.$size-1;
   }
 
   &__arrow {
     display: flex;
-    width: ds.$size-6;
-    height: ds.$size-6;
+    width: ds.$size-5;
+    height: ds.$size-5;
     padding: 0;
     border: ds.$control-border-width solid ds.$color-on-primary;
     border-radius: ds.$radius-full;
@@ -229,8 +242,8 @@
       @include ds.focus-ring;
     }
 
-    &[aria-disabled='true'] {
-      cursor: not-allowed;
+    &:first-child {
+      background: ds.$color-white;
     }
   }
 
@@ -240,58 +253,50 @@
 
   &__track {
     display: flex;
-    gap: ds.$size-3;
-    flex-wrap: wrap;
-  }
-
-  &__track > .game-card {
-    flex: 0 0 calc((100% - #{ds.$size-3 * 3}) / 4);
-  }
-
-  &__indicators {
-    display: flex;
     gap: ds.$size-1;
-    margin-top: ds.$size-4;
+    width: 100%;
     justify-content: center;
   }
 
-  &__indicator {
-    width: ds.$size-1;
-    height: ds.$size-1;
-    border-radius: ds.$radius-full;
-    background: ds.$color-outline-strong;
+  &__track > .game-card {
+    height: 200px;
+    flex: 0 0 ds.$size-7;
+  }
 
-    &--active {
-      width: ds.$size-4;
-      background: ds.$color-on-primary;
+  &__track > .game-card--featured {
+    max-width: 216px;
+    flex: 1 1 auto;
+  }
+
+  &__track > .game-card:first-child,
+  &__track > .game-card:last-child {
+    display: none;
+  }
+
+  &__track > .game-card:not(.game-card--featured) {
+    .game-card__information {
+      display: none;
     }
   }
 
-  @include ds.respond-at-most('tablet') {
-    padding: ds.$section-space-tablet ds.$container-gutter-tablet;
-
-    &__track {
-      gap: ds.$size-2;
-    }
-
-    &__track > .game-card {
-      flex-basis: calc((100% - #{ds.$size-2}) / 2);
-    }
-  }
-
-  @include ds.respond-at-most('mobile') {
-    padding: ds.$section-space-mobile ds.$container-gutter-mobile;
+  @media (width >= 376px) {
+    padding: ds.$size-4 ds.$container-gutter-tablet ds.$size-6;
 
     &__heading-row {
       margin-bottom: ds.$size-3;
     }
 
     h2 {
-      font-size: ds.$font-size-headline-large;
+      font-size: ds.$font-size-headline-medium;
+
+      &::before {
+        width: ds.$size-1;
+        height: ds.$size-4;
+      }
     }
 
     &__arrows {
-      gap: ds.$size-1;
+      display: flex;
     }
 
     &__arrow {
@@ -300,11 +305,71 @@
     }
 
     &__track {
-      gap: ds.$size-1;
+      width: 100%;
     }
 
-    &__indicators {
-      margin-top: ds.$size-3;
+    &__track > .game-card {
+      height: 280px;
+      flex-basis: clamp(56px, calc((100% - 456px) / 2), 104px);
+    }
+
+    &__track > .game-card--featured {
+      max-width: 440px;
+      flex-basis: auto;
+    }
+  }
+
+  @media (width >= 769px) {
+    padding: ds.$size-6 ds.$container-gutter-responsive ds.$size-10;
+
+    &__heading-row {
+      margin-bottom: ds.$size-4;
+    }
+
+    h2 {
+      font-size: ds.$font-size-headline-large;
+
+      &::before {
+        width: ds.$size-1;
+        height: ds.$size-4;
+      }
+    }
+
+    &__arrows {
+      gap: ds.$size-2;
+    }
+
+    &__arrow {
+      width: ds.$size-6;
+      height: ds.$size-6;
+    }
+
+    &__track {
+      width: max-content;
+      justify-content: flex-start;
+      transform: translateX(clamp(-136px, calc(4px - 7.29vw), -52px));
+    }
+
+    &__track > .game-card {
+      display: block;
+      height: clamp(280px, calc(213.33px + 8.68vw), 380px);
+      flex: 0 0 clamp(104px, calc(-13.33px + 15.28vw), 280px);
+    }
+
+    &__track > .game-card:first-child,
+    &__track > .game-card:last-child {
+      display: block;
+    }
+
+    &__track > .game-card--featured {
+      max-width: none;
+      flex-basis: clamp(440px, calc(200px + 31.25vw), 800px);
+    }
+
+    &__track > .game-card:not(.game-card--featured) {
+      .game-card__information {
+        display: block;
+      }
     }
   }
 }
@@ -317,7 +382,6 @@
   border-radius: ds.$radius-large;
   box-shadow: ds.$shadow-level-2;
   container-type: inline-size;
-  aspect-ratio: 4 / 3;
   background: ds.$color-footer-raised;
 
   &__artwork {
@@ -338,9 +402,9 @@
     right: 0;
     bottom: 0;
     left: 0;
-    display: none;
-    padding: ds.$size-2;
-    background: linear-gradient(transparent, rgba(ds.$color-footer, 0.95) 30%);
+    display: block;
+    padding: ds.$size-7 ds.$size-2 ds.$size-2;
+    background: linear-gradient(transparent, rgba(ds.$color-footer, 0.96) 48%);
     color: ds.$color-white;
     font-family: ds.$font-family-secondary;
   }
@@ -348,7 +412,7 @@
   &__title {
     margin: 0 0 ds.$size-1;
     overflow: hidden;
-    font-size: ds.$font-size-headline-small;
+    font-size: ds.$font-size-label-large;
     line-height: 1.2;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -368,12 +432,6 @@
 
   &__rating {
     color: ds.$color-primary;
-  }
-
-  @container (width >= 288px) {
-    .game-card__information {
-      display: block;
-    }
   }
 }
 
@@ -1004,9 +1062,15 @@
   }
 
   @include ds.respond-at-most('tablet') {
+    flex-direction: column;
     gap: ds.$size-4;
     width: min(100%, ds.$container-width-tablet);
     margin-bottom: ds.$section-space-tablet;
+
+    &__content {
+      width: 100%;
+      flex: none;
+    }
 
     h2 {
       font-size: ds.$font-size-display-medium;
@@ -1025,7 +1089,9 @@
     }
 
     &__illustration {
+      width: 100%;
       min-height: 0;
+      flex: none;
     }
 
     &__game-shape {
@@ -1035,14 +1101,11 @@
   }
 
   @include ds.respond-at-most('mobile') {
-    flex-direction: column;
     gap: ds.$size-4;
     width: min(100%, ds.$container-width-mobile);
     margin-bottom: ds.$section-space-mobile;
 
     &__content {
-      flex-basis: auto;
-      width: 100%;
       padding: ds.$size-3;
     }
 
@@ -1061,9 +1124,6 @@
     }
 
     &__illustration {
-      flex-basis: auto;
-      width: 100%;
-      min-height: 0;
       transform: rotate(0deg);
     }
 

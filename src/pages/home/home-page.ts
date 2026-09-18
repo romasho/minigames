@@ -1,9 +1,10 @@
 import heroBackgroundUrl from '../../assets/images/hero-background.png';
 import developerIllustrationUrl from '../../assets/images/illustration-side.png';
-import camperVanCardUrl from '../../assets/games/camper-van-make-it-home-card.jpg';
-import catChessCardUrl from '../../assets/games/cat-chess-card.jpg';
-import cozySolitaireCardUrl from '../../assets/games/cozy-solitaire-card.jpg';
-import tinyGladeCardUrl from '../../assets/games/tiny-glade-card.jpg';
+import islandersCardUrl from '../../assets/games/islanders-new-shores-card.jpg';
+import organizedInsideCardUrl from '../../assets/games/organized-inside-card.jpg';
+import shelveThePotionsCardUrl from '../../assets/games/shelve-the-potions-card.jpg';
+import vacationCafeCardUrl from '../../assets/games/vacation-cafe-simulator-card.jpg';
+import winterBurrowCardUrl from '../../assets/games/winter-burrow-card.jpg';
 import './home-page.scss';
 
 interface GameCard {
@@ -11,6 +12,7 @@ interface GameCard {
   title: string;
   likes: string;
   rating: string;
+  featured?: boolean;
 }
 
 interface LeaderboardPlayer {
@@ -26,27 +28,34 @@ interface LeaderboardPlayer {
 
 const FEATURED_GAMES: readonly GameCard[] = [
   {
-    imageUrl: camperVanCardUrl,
-    title: 'Camper Van: Make It Home',
-    likes: '12.8K',
+    imageUrl: organizedInsideCardUrl,
+    title: 'Organized Inside',
+    likes: '41.6K',
     rating: '4.9',
   },
   {
-    imageUrl: catChessCardUrl,
-    title: 'Cat Chess',
-    likes: '9.6K',
+    imageUrl: islandersCardUrl,
+    title: 'ISLANDERS: New Shores',
+    likes: '54.2K',
+    rating: '4.9',
+  },
+  {
+    imageUrl: vacationCafeCardUrl,
+    title: 'Vacation Cafe Simulator',
+    likes: '28.7K',
     rating: '4.8',
+    featured: true,
   },
   {
-    imageUrl: cozySolitaireCardUrl,
-    title: 'Cozy Solitaire',
-    likes: '8.4K',
-    rating: '4.7',
+    imageUrl: winterBurrowCardUrl,
+    title: 'Winter Burrow',
+    likes: '32.4K',
+    rating: '4.9',
   },
   {
-    imageUrl: tinyGladeCardUrl,
-    title: 'Tiny Glade',
-    likes: '7.9K',
+    imageUrl: shelveThePotionsCardUrl,
+    title: 'Shelve the Potions',
+    likes: '26.8K',
     rating: '4.8',
   },
 ];
@@ -139,6 +148,7 @@ function createHeroSection(): HTMLElement {
 function createGameCard(game: GameCard): HTMLElement {
   const card: HTMLElement = document.createElement('article');
   card.className = 'game-card';
+  if (game.featured) card.classList.add('game-card--featured');
 
   const artwork: HTMLDivElement = document.createElement('div');
   artwork.className = 'game-card__artwork';
@@ -169,7 +179,7 @@ function createGameCard(game: GameCard): HTMLElement {
   rating.textContent = `★ ${game.rating}`;
 
   artwork.append(image);
-  statistics.append(likes, rating);
+  statistics.append(rating, likes);
   information.append(title, statistics);
   card.append(artwork, information);
   return card;
@@ -178,14 +188,14 @@ function createGameCard(game: GameCard): HTMLElement {
 function createCarouselSection(): HTMLElement {
   const section: HTMLElement = document.createElement('section');
   section.className = 'games-carousel';
-  section.setAttribute('aria-labelledby', 'popular-games-title');
+  section.setAttribute('aria-labelledby', 'new-games-title');
 
   const headingRow: HTMLDivElement = document.createElement('div');
   headingRow.className = 'games-carousel__heading-row';
 
   const title: HTMLHeadingElement = document.createElement('h2');
-  title.id = 'popular-games-title';
-  title.textContent = 'Popular Games';
+  title.id = 'new-games-title';
+  title.textContent = 'New Games';
 
   const arrows: HTMLDivElement = document.createElement('div');
   arrows.className = 'games-carousel__arrows';
@@ -198,8 +208,7 @@ function createCarouselSection(): HTMLElement {
     const arrow: HTMLButtonElement = document.createElement('button');
     arrow.type = 'button';
     arrow.className = 'games-carousel__arrow';
-    arrow.setAttribute('aria-label', `${direction} slide (coming soon)`);
-    arrow.setAttribute('aria-disabled', 'true');
+    arrow.setAttribute('aria-label', `${direction} slide`);
     arrow.textContent = symbol;
     arrows.append(arrow);
   }
@@ -212,18 +221,8 @@ function createCarouselSection(): HTMLElement {
   track.append(...FEATURED_GAMES.map((game: GameCard) => createGameCard(game)));
   viewport.append(track);
 
-  const indicators: HTMLDivElement = document.createElement('div');
-  indicators.className = 'games-carousel__indicators';
-  indicators.setAttribute('aria-label', 'Slide 1 of 3');
-  for (const isActive of [true, false, false]) {
-    const indicator: HTMLSpanElement = document.createElement('span');
-    indicator.className = 'games-carousel__indicator';
-    if (isActive) indicator.classList.add('games-carousel__indicator--active');
-    indicators.append(indicator);
-  }
-
   headingRow.append(title, arrows);
-  section.append(headingRow, viewport, indicators);
+  section.append(headingRow, viewport);
   return section;
 }
 
