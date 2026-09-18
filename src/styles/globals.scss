@@ -51,6 +51,7 @@ body {
   font-weight: ds.$font-weight-regular;
 }
 
+html:has(body.is-overlay-open),
 body.is-overlay-open {
   overflow: hidden;
 }
