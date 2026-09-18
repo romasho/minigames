@@ -15,7 +15,9 @@ interface GameCard {
 
 interface LeaderboardPlayer {
   rank: number;
+  initials: string;
   playerName: string;
+  mobilePlayerName?: string;
   gamesPlayed: number;
   totalScore: number;
   streakDays: number;
@@ -52,6 +54,7 @@ const FEATURED_GAMES: readonly GameCard[] = [
 const LEADERBOARD_PLAYERS: readonly LeaderboardPlayer[] = [
   {
     rank: 1,
+    initials: 'AP',
     playerName: 'Alex_Pro99',
     gamesPlayed: 142,
     totalScore: 94_250,
@@ -60,7 +63,9 @@ const LEADERBOARD_PLAYERS: readonly LeaderboardPlayer[] = [
   },
   {
     rank: 2,
+    initials: 'CG',
     playerName: 'CozyGamer_x',
+    mobilePlayerName: 'CozyGamer',
     gamesPlayed: 118,
     totalScore: 81_400,
     streakDays: 8,
@@ -68,6 +73,7 @@ const LEADERBOARD_PLAYERS: readonly LeaderboardPlayer[] = [
   },
   {
     rank: 3,
+    initials: 'MM',
     playerName: 'MatchMaster',
     gamesPlayed: 98,
     totalScore: 72_110,
@@ -76,6 +82,7 @@ const LEADERBOARD_PLAYERS: readonly LeaderboardPlayer[] = [
   },
   {
     rank: 4,
+    initials: 'BP',
     playerName: 'BubblePop',
     gamesPlayed: 87,
     totalScore: 65_900,
@@ -84,6 +91,7 @@ const LEADERBOARD_PLAYERS: readonly LeaderboardPlayer[] = [
   },
   {
     rank: 5,
+    initials: 'SG',
     playerName: 'SudokuGod',
     gamesPlayed: 74,
     totalScore: 59_320,
@@ -231,6 +239,78 @@ function createLeaderboardCell(
   return cell;
 }
 
+function createPlayerCell(player: LeaderboardPlayer): HTMLTableCellElement {
+  const cell: HTMLTableCellElement = createLeaderboardCell(
+    '',
+    'Player',
+    'leaderboard__player',
+  );
+  const avatar: HTMLSpanElement = document.createElement('span');
+  avatar.className = `leaderboard__avatar leaderboard__avatar--${String(player.rank)}`;
+  avatar.textContent = player.initials;
+
+  const name: HTMLSpanElement = document.createElement('span');
+  name.className = 'leaderboard__player-name';
+  name.textContent = player.playerName;
+  if (player.mobilePlayerName)
+    name.dataset.mobileName = player.mobilePlayerName;
+
+  cell.append(avatar, name);
+  return cell;
+}
+
+function createStreakCell(player: LeaderboardPlayer): HTMLTableCellElement {
+  const cell: HTMLTableCellElement = createLeaderboardCell(
+    '',
+    'Streak',
+    'leaderboard__streak',
+  );
+  const icon: HTMLSpanElement = document.createElement('span');
+  icon.className = 'leaderboard__streak-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '🔥';
+  const desktopValue: HTMLSpanElement = document.createElement('span');
+  desktopValue.className = 'leaderboard__streak-desktop';
+  desktopValue.textContent = `${String(player.streakDays)} days`;
+  const compactValue: HTMLSpanElement = document.createElement('span');
+  compactValue.className = 'leaderboard__streak-compact';
+  compactValue.textContent = `${String(player.streakDays)}d`;
+  cell.append(icon, desktopValue, compactValue);
+  return cell;
+}
+
+function createScoreCell(
+  player: LeaderboardPlayer,
+  scoreFormatter: Intl.NumberFormat,
+): HTMLTableCellElement {
+  const cell: HTMLTableCellElement = createLeaderboardCell(
+    '',
+    'Score',
+    'leaderboard__score',
+  );
+  const fullValue: HTMLSpanElement = document.createElement('span');
+  fullValue.className = 'leaderboard__score-full';
+  fullValue.textContent = scoreFormatter.format(player.totalScore);
+  const compactValue: HTMLSpanElement = document.createElement('span');
+  compactValue.className = 'leaderboard__score-compact';
+  compactValue.textContent = `${(Math.floor(player.totalScore / 100) / 10).toFixed(1)}K`;
+  cell.append(fullValue, compactValue);
+  return cell;
+}
+
+function createFavoriteCell(player: LeaderboardPlayer): HTMLTableCellElement {
+  const cell: HTMLTableCellElement = createLeaderboardCell(
+    '',
+    'Favorite Game',
+    'leaderboard__favorite',
+  );
+  const tag: HTMLSpanElement = document.createElement('span');
+  tag.className = 'leaderboard__favorite-tag';
+  tag.textContent = player.favoriteGameName;
+  cell.append(tag);
+  return cell;
+}
+
 function createLeaderboardSection(): HTMLElement {
   const section: HTMLElement = document.createElement('section');
   section.className = 'leaderboard';
@@ -241,31 +321,51 @@ function createLeaderboardSection(): HTMLElement {
 
   const title: HTMLHeadingElement = document.createElement('h2');
   title.id = 'leaderboard-title';
-  title.textContent = 'Leaderboard';
-
-  const description: HTMLParagraphElement = document.createElement('p');
-  description.textContent = 'Top Players This Week';
-  heading.append(title, description);
+  const desktopTitle: HTMLSpanElement = document.createElement('span');
+  desktopTitle.className = 'leaderboard__title-desktop';
+  desktopTitle.textContent = 'Top Players This Week';
+  const mobileTitle: HTMLSpanElement = document.createElement('span');
+  mobileTitle.className = 'leaderboard__title-mobile';
+  mobileTitle.textContent = 'Top Players';
+  title.append(desktopTitle, mobileTitle);
+  heading.append(title);
 
   const table: HTMLTableElement = document.createElement('table');
   table.className = 'leaderboard__table';
+
+  const columns: HTMLTableColElement[] = Array.from(
+    { length: 6 },
+    (_value: unknown, index: number): HTMLTableColElement => {
+      const column: HTMLTableColElement = document.createElement('col');
+      column.className = `leaderboard__column leaderboard__column--${String(index + 1)}`;
+      return column;
+    },
+  );
+  const columnGroup: HTMLTableColElement = document.createElement('colgroup');
+  columnGroup.append(...columns);
 
   const caption: HTMLTableCaptionElement = document.createElement('caption');
   caption.textContent = 'Top players this week';
 
   const header: HTMLTableSectionElement = table.createTHead();
   const headerRow: HTMLTableRowElement = header.insertRow();
-  for (const label of [
-    'Rank',
-    'Player',
-    'Games Played',
-    'Total Score',
-    'Streak',
-    'Favourite Game',
-  ]) {
+  for (const [longLabel, compactLabel] of [
+    ['Rank', 'Rank'],
+    ['Player', 'Player'],
+    ['Games Played', 'Games'],
+    ['Total Score', 'Score'],
+    ['Streak', 'Streak'],
+    ['Favorite Game', 'Favorite Game'],
+  ] as const) {
     const cell: HTMLTableCellElement = document.createElement('th');
     cell.scope = 'col';
-    cell.textContent = label;
+    const long: HTMLSpanElement = document.createElement('span');
+    long.className = 'leaderboard__label-long';
+    long.textContent = longLabel;
+    const compact: HTMLSpanElement = document.createElement('span');
+    compact.className = 'leaderboard__label-compact';
+    compact.textContent = compactLabel;
+    cell.append(long, compact);
     headerRow.append(cell);
   }
 
@@ -275,24 +375,20 @@ function createLeaderboardSection(): HTMLElement {
     const row: HTMLTableRowElement = body.insertRow();
     row.className = `leaderboard__row leaderboard__row--rank-${String(player.rank)}`;
     row.append(
-      createLeaderboardCell(String(player.rank), 'Rank', 'leaderboard__rank'),
-      createLeaderboardCell(player.playerName, 'Player', 'leaderboard__player'),
+      createLeaderboardCell(
+        `#${String(player.rank)}`,
+        'Rank',
+        'leaderboard__rank',
+      ),
+      createPlayerCell(player),
       createLeaderboardCell(String(player.gamesPlayed), 'Games Played'),
-      createLeaderboardCell(
-        scoreFormatter.format(player.totalScore),
-        'Total Score',
-        'leaderboard__score',
-      ),
-      createLeaderboardCell(
-        `${String(player.streakDays)} days`,
-        'Streak',
-        'leaderboard__streak',
-      ),
-      createLeaderboardCell(player.favoriteGameName, 'Favourite Game'),
+      createScoreCell(player, scoreFormatter),
+      createStreakCell(player),
+      createFavoriteCell(player),
     );
   }
 
-  table.append(caption, header, body);
+  table.append(caption, columnGroup, header, body);
   section.append(heading, table);
   return section;
 }
