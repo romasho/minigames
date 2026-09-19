@@ -1,22 +1,29 @@
-import logoUrl from '../../assets/images/minigames-logo.png';
+import logoUrl from '../../assets/icons/Vector.svg';
 import {
   type AuthDialogController,
   AuthMode,
   createAuthDialog,
 } from '../dialogs/auth-dialog';
+import { lockScroll, unlockScroll } from '../../utils/scroll-lock';
 import './header.scss';
 
 interface NavigationItem {
   readonly label: string;
+  readonly href: string;
   readonly isCurrent?: boolean;
 }
 
 const navigationItems: readonly NavigationItem[] = [
-  { label: 'Home', isCurrent: true },
-  { label: 'Games' },
-  { label: 'Leaderboard' },
-  { label: 'About' },
+  { label: 'Home', href: '/#top', isCurrent: true },
+  { label: 'Library', href: '/#new-games-title' },
+  { label: 'Tournaments', href: '/#leaderboard' },
+  { label: 'Community', href: '/#developers' },
 ];
+
+export interface HeaderController {
+  readonly element: HTMLElement;
+  destroy(): void;
+}
 
 function createBrand(): HTMLAnchorElement {
   const brand: HTMLAnchorElement = document.createElement('a');
@@ -44,7 +51,7 @@ function createNavigation(className: string): HTMLElement {
 
   for (const item of navigationItems) {
     const link: HTMLAnchorElement = document.createElement('a');
-    link.href = '/';
+    link.href = item.href;
     link.textContent = item.label;
     if (item.isCurrent === true) {
       link.classList.add('is-current');
@@ -86,7 +93,7 @@ function createMenuToggle(): HTMLButtonElement {
 /**
  * Creates the shared unauthenticated application header.
  */
-export function createHeader(): HTMLElement {
+export function createHeader(): HeaderController {
   const header: HTMLElement = document.createElement('header');
   header.className = 'app-header';
 
@@ -149,7 +156,8 @@ export function createHeader(): HTMLElement {
 
   const setMenuOpen: (isOpen: boolean) => void = (isOpen: boolean): void => {
     header.classList.toggle('is-menu-open', isOpen);
-    document.body.classList.toggle('is-overlay-open', isOpen);
+    if (isOpen) lockScroll('navigation');
+    else unlockScroll('navigation');
     menuToggle.setAttribute('aria-expanded', String(isOpen));
     menuToggle.setAttribute(
       'aria-label',
@@ -184,20 +192,31 @@ export function createHeader(): HTMLElement {
   mobileSignUpButton.addEventListener('click', (): void => {
     openAuth(AuthMode.Register);
   });
-  document.addEventListener('keydown', (event: KeyboardEvent): void => {
+  const handleEscape: (event: KeyboardEvent) => void = (
+    event: KeyboardEvent,
+  ): void => {
     if (event.key !== 'Escape' || !header.classList.contains('is-menu-open'))
       return;
     setMenuOpen(false);
     menuToggle.focus();
-  });
+  };
+  document.addEventListener('keydown', handleEscape);
 
   const desktopMedia: MediaQueryList = matchMedia('(width > 48rem)');
-  desktopMedia.addEventListener(
-    'change',
-    (event: MediaQueryListEvent): void => {
-      if (event.matches) setMenuOpen(false);
-    },
-  );
+  const handleDesktopMediaChange: (event: MediaQueryListEvent) => void = (
+    event: MediaQueryListEvent,
+  ): void => {
+    if (event.matches) setMenuOpen(false);
+  };
+  desktopMedia.addEventListener('change', handleDesktopMediaChange);
 
-  return header;
+  return {
+    element: header,
+    destroy(): void {
+      unlockScroll('navigation');
+      document.removeEventListener('keydown', handleEscape);
+      desktopMedia.removeEventListener('change', handleDesktopMediaChange);
+      authDialog.destroy();
+    },
+  };
 }

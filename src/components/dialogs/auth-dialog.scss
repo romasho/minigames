@@ -37,7 +37,7 @@
   &__surface {
     width: min(100%, ds.$dialog-max-width);
     padding: ds.$size-3;
-    border: 2px solid ds.$color-on-primary;
+    border: ds.$control-border-width solid ds.$color-on-primary;
     border-radius: ds.$radius-large;
     background: ds.$color-background;
     box-shadow: ds.$shadow-level-3;
@@ -118,6 +118,21 @@
   &__form,
   &__fields {
     gap: ds.$size-2;
+  }
+
+  &__status {
+    margin: 0;
+    color: ds.$color-on-background;
+    font-size: ds.$font-size-body-small;
+    line-height: 1.4;
+
+    &:empty {
+      display: none;
+    }
+
+    &.is-error {
+      color: ds.$color-error;
+    }
   }
 
   &__field {
@@ -247,6 +262,11 @@
       box-shadow: none;
       transform: translateY(ds.$size-0-5);
     }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: ds.$opacity-disabled;
+    }
   }
 
   &__submit {
@@ -326,7 +346,7 @@
     @include ds.focus-ring;
   }
 
-  @media (width <= 376px) {
+  @include ds.respond-at-most('mobile') {
     padding: ds.$size-1 ds.$size-2;
 
     &__surface {

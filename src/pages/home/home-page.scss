@@ -1,5 +1,10 @@
 @use '../../styles/abstracts' as ds;
 
+@mixin background-opacity($color, $opacity: 0.3) {
+    background: $color; /* The Fallback */
+    background: rgba($color, $opacity);
+}
+
 .home-page {
   min-height: 100%;
 }
@@ -14,8 +19,8 @@
   padding-inline: ds.$container-gutter-responsive;
   overflow: hidden;
   align-items: center;
-  background: ds.$color-footer;
   isolation: isolate;
+  @include background-opacity(ds.$color-footer, 0.65);
 
   &__background,
   &__overlay {
@@ -31,12 +36,6 @@
     height: ds.$hero-background-scale;
     object-fit: cover;
     opacity: ds.$opacity-hero-image;
-  }
-
-  &__overlay {
-    z-index: -1;
-    inset: 0;
-    background: rgba(ds.$color-footer, ds.$opacity-hero-overlay);
   }
 
   &__content {
@@ -100,11 +99,6 @@
 
     &:focus-visible {
       @include ds.focus-ring;
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: ds.$opacity-disabled;
     }
   }
 
@@ -976,6 +970,7 @@
   }
 
   @media (width <= 1288px) {
+    padding: 0 16px;
     &__illustration {
       flex: 1.176 1 0;
     }
