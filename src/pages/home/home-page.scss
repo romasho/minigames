@@ -275,22 +275,22 @@
     justify-content: center;
   }
 
-  &__track>.game-card {
+  &__track > .game-card {
     height: 200px;
     flex: 0 0 ds.$size-7;
   }
 
-  &__track>.game-card--featured {
+  &__track > .game-card--featured {
     max-width: 216px;
     flex: 1 1 auto;
   }
 
-  &__track>.game-card:first-child,
-  &__track>.game-card:last-child {
+  &__track > .game-card:first-child,
+  &__track > .game-card:last-child {
     display: none;
   }
 
-  &__track>.game-card:not(.game-card--featured) {
+  &__track > .game-card:not(.game-card--featured) {
     .game-card__information {
       display: none;
     }
@@ -325,12 +325,12 @@
       width: 100%;
     }
 
-    &__track>.game-card {
+    &__track > .game-card {
       height: 280px;
       flex-basis: clamp(56px, calc((100% - 456px) / 2), 104px);
     }
 
-    &__track>.game-card--featured {
+    &__track > .game-card--featured {
       max-width: 440px;
       flex-basis: auto;
     }
@@ -367,23 +367,23 @@
       transform: translateX(clamp(-136px, calc(4px - 7.29vw), -52px));
     }
 
-    &__track>.game-card {
+    &__track > .game-card {
       display: block;
       height: clamp(280px, calc(213.33px + 8.68vw), 380px);
       flex: 0 0 clamp(104px, calc(-13.33px + 15.28vw), 280px);
     }
 
-    &__track>.game-card:first-child,
-    &__track>.game-card:last-child {
+    &__track > .game-card:first-child,
+    &__track > .game-card:last-child {
       display: block;
     }
 
-    &__track>.game-card--featured {
+    &__track > .game-card--featured {
       max-width: none;
       flex-basis: clamp(440px, calc(200px + 31.25vw), 800px);
     }
 
-    &__track>.game-card:not(.game-card--featured) {
+    &__track > .game-card:not(.game-card--featured) {
       .game-card__information {
         display: block;
       }
@@ -819,8 +819,10 @@
   position: relative;
   display: flex;
   gap: ds.$size-4;
-  width: min(calc(100% - 2 * ds.$container-gutter-responsive),
-      ds.$container-width-desktop );
+  width: min(
+    calc(100% - 2 * ds.$container-gutter-responsive),
+    ds.$container-width-desktop
+  );
   margin: 0 auto ds.$section-space-desktop;
   align-items: center;
   justify-content: start;
@@ -1134,7 +1136,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .hero__button,
   .games-carousel__arrow,
   .game-developer__button {

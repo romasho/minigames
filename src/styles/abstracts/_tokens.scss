@@ -100,7 +100,8 @@ $hero-height-tablet: 383px; // 383px
 $hero-height-mobile: 331px; // 331px
 $hero-card-width-desktop: 640px; // 640px
 $hero-card-width-tablet: 480px; // 480px
-$hero-mobile-switch-width: $hero-card-width-tablet + (2 * $container-gutter-tablet); // 560px
+$hero-mobile-switch-width: $hero-card-width-tablet +
+  (2 * $container-gutter-tablet); // 560px
 $hero-background-scale: 120%;
 $hero-background-offset-inline: -10%;
 $hero-background-offset-block: -14%;
