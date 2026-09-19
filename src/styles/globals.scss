@@ -51,6 +51,10 @@ body {
   font-weight: ds.$font-weight-regular;
 }
 
+html {
+  scrollbar-width: none;
+}
+
 html:has(body.is-overlay-open),
 body.is-overlay-open {
   overflow: hidden;

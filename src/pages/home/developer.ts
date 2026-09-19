@@ -1,4 +1,5 @@
 import developerIllustrationUrl from '../../assets/images/illustration-side.png';
+import uploadIconUrl from '../../assets/icons/upload.svg';
 import './developer.scss';
 
 export function createDeveloperSection(): HTMLElement {
@@ -13,13 +14,21 @@ export function createDeveloperSection(): HTMLElement {
   title.textContent = 'Are You a Game Developer?';
   const description = document.createElement('p');
   description.className = 'game-developer__description';
-  description.textContent =
-    "Want to see your game on MiniGames? We're always looking for fun, engaging mini games to add to our platform. Submit your game and reach thousands of players!";
+  description.append(
+    "Want to see your game on MiniGames? We're always looking for fun, ",
+    document.createElement('br'),
+    'engaging mini games to add to our platform. Submit your game ',
+    document.createElement('br'),
+    'and reach thousands of players!',
+  );
   const button = document.createElement('a');
   button.className = 'game-developer__button';
   button.href = 'mailto:developers@minigames.com?subject=Game%20submission';
-  const icon = document.createElement('span');
-  icon.className = 'game-developer__button-icon';
+  const icon = document.createElement('img');
+  icon.src = uploadIconUrl;
+  icon.width = 16;
+  icon.height = 16;
+  icon.alt = '';
   icon.setAttribute('aria-hidden', 'true');
   const label = document.createElement('span');
   label.textContent = 'Submit Form';

@@ -19,8 +19,15 @@ export function createHeroSection(): HTMLElement {
   title.id = 'hero-title';
   title.textContent = 'Take a Short Break & Have Fun';
   const description = document.createElement('p');
-  description.textContent =
+  const desktopDescription = document.createElement('span');
+  desktopDescription.className = 'hero__description--desktop';
+  desktopDescription.textContent =
     'Discover hundreds of curated casual mini-games. Play instantly in your browser — puzzle, match 3, farm, and board classics.';
+  const mobileDescription = document.createElement('span');
+  mobileDescription.className = 'hero__description--mobile';
+  mobileDescription.textContent =
+    'Discover hundreds of curated casual mini-games right in your browser.';
+  description.append(desktopDescription, mobileDescription);
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'hero__button';
