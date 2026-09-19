@@ -1,4 +1,4 @@
-import logoUrl from '../../assets/images/minigames-logo.png';
+import logoUrl from '../../assets/icons/Vector.svg';
 import codeIconUrl from '../../assets/icons/code-xml.svg';
 import messageIconUrl from '../../assets/icons/message-square-text.svg';
 import rssIconUrl from '../../assets/icons/rss.svg';
@@ -7,20 +7,38 @@ import './footer.scss';
 
 interface FooterLinkGroup {
   readonly title: string;
-  readonly links: readonly string[];
+  readonly links: readonly FooterLink[];
+}
+
+interface FooterLink {
+  readonly label: string;
+  readonly href: string;
 }
 
 const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
-  { title: 'Explore', links: ['Home', 'Library', 'Categories', 'Tournaments'] },
+  {
+    title: 'Explore',
+    links: [
+      { label: 'Home', href: '/#top' },
+      { label: 'Library', href: '/#new-games-title' },
+      { label: 'Categories', href: '/#new-games-title' },
+      { label: 'Tournaments', href: '/#leaderboard' },
+    ],
+  },
   {
     title: 'Company',
-    links: ['About Us', 'Contact', 'Privacy Policy', 'Terms of Service'],
+    links: [
+      { label: 'About Us', href: '/#developers' },
+      { label: 'Contact', href: 'mailto:developers@minigames.com' },
+      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Terms of Service', href: '/terms' },
+    ],
   },
 ];
 
-function createHomeLink(label: string): HTMLAnchorElement {
+function createLink(label: string, href: string): HTMLAnchorElement {
   const link: HTMLAnchorElement = document.createElement('a');
-  link.href = '/';
+  link.href = href;
   link.textContent = label;
   return link;
 }
@@ -54,14 +72,18 @@ function createLinkGroup(group: FooterLinkGroup): HTMLElement {
   const navigation: HTMLElement = document.createElement('nav');
   navigation.setAttribute('aria-label', `${group.title} links`);
   navigation.append(
-    ...group.links.map((label: string) => createHomeLink(label)),
+    ...group.links.map((link: FooterLink) => createLink(link.label, link.href)),
   );
   section.append(title, navigation);
   return section;
 }
 
-function createSocialLink(label: string, iconUrl: string): HTMLAnchorElement {
-  const link: HTMLAnchorElement = createHomeLink('');
+function createSocialLink(
+  label: string,
+  iconUrl: string,
+  href: string,
+): HTMLAnchorElement {
+  const link: HTMLAnchorElement = createLink('', href);
   link.className = 'app-footer__social-link';
   link.setAttribute('aria-label', label);
 
@@ -85,9 +107,9 @@ function createCommunityGroup(): HTMLElement {
   const links: HTMLDivElement = document.createElement('div');
   links.className = 'app-footer__social-links';
   links.append(
-    createSocialLink('Share MiniGames', shareIconUrl),
-    createSocialLink('MiniGames community', messageIconUrl),
-    createSocialLink('MiniGames RSS feed', rssIconUrl),
+    createSocialLink('Share MiniGames', shareIconUrl, '/#top'),
+    createSocialLink('MiniGames community', messageIconUrl, '/#developers'),
+    createSocialLink('MiniGames RSS feed', rssIconUrl, '/#new-games-title'),
   );
   section.append(title, links);
   return section;

@@ -1,120 +1,18 @@
 import './auth-dialog.scss';
+import { createField } from './auth/auth-field';
+import { fieldsByMode } from './auth/auth-fields';
+import { createGoogleIcon } from './auth/auth-icons';
+import {
+  AuthMode,
+  type AuthDialogController,
+  type FieldDefinition,
+} from './auth/auth-types';
+import { lockScroll, unlockScroll } from '../../utils/scroll-lock';
 
-export enum AuthMode {
-  Login = 'login',
-  Register = 'register',
-}
+export { AuthMode, type AuthDialogController } from './auth/auth-types';
 
-export interface AuthDialogController {
-  readonly element: HTMLDialogElement;
-  open(mode: AuthMode): void;
-}
-
-type FieldIcon = 'email' | 'lock' | 'user';
-
-interface FieldDefinition {
-  readonly autocomplete: AutoFill;
-  readonly icon: FieldIcon;
-  readonly label: string;
-  readonly name: string;
-  readonly placeholder: string;
-  readonly type: 'email' | 'password' | 'text';
-}
-
-const fieldsByMode: Readonly<Record<AuthMode, readonly FieldDefinition[]>> = {
-  [AuthMode.Login]: [
-    {
-      autocomplete: 'email',
-      icon: 'email',
-      label: 'Email Address',
-      name: 'email',
-      placeholder: 'e.g. alex@minigames.com',
-      type: 'email',
-    },
-    {
-      autocomplete: 'current-password',
-      icon: 'lock',
-      label: 'Password',
-      name: 'password',
-      placeholder: '••••••••',
-      type: 'password',
-    },
-  ],
-  [AuthMode.Register]: [
-    {
-      autocomplete: 'username',
-      icon: 'user',
-      label: 'Username',
-      name: 'username',
-      placeholder: 'e.g. CozyGamer_99',
-      type: 'text',
-    },
-    {
-      autocomplete: 'email',
-      icon: 'email',
-      label: 'Email Address',
-      name: 'email',
-      placeholder: 'your.email@domain.com',
-      type: 'email',
-    },
-    {
-      autocomplete: 'new-password',
-      icon: 'lock',
-      label: 'Password',
-      name: 'password',
-      placeholder: 'Min. 8 characters',
-      type: 'password',
-    },
-    {
-      autocomplete: 'new-password',
-      icon: 'lock',
-      label: 'Confirm Password',
-      name: 'confirm-password',
-      placeholder: 'Repeat your password',
-      type: 'password',
-    },
-  ],
-};
-
-const iconPaths: Readonly<Record<FieldIcon | 'eye', string>> = {
-  email:
-    '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
-  eye: '<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/>',
-  lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
-  user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
-};
-
-function createIcon(name: FieldIcon | 'eye'): SVGSVGElement {
-  const icon: SVGSVGElement = document.createElementNS(
-    'http://www.w3.org/2000/svg',
-    'svg',
-  );
-  icon.setAttribute('viewBox', '0 0 24 24');
-  icon.setAttribute('aria-hidden', 'true');
-  icon.setAttribute('fill', 'none');
-  icon.setAttribute('stroke', 'currentColor');
-  icon.setAttribute('stroke-width', '1.8');
-  icon.setAttribute('stroke-linecap', 'round');
-  icon.setAttribute('stroke-linejoin', 'round');
-  icon.innerHTML = iconPaths[name];
-  return icon;
-}
-
-function createGoogleIcon(): SVGSVGElement {
-  const icon: SVGSVGElement = document.createElementNS(
-    'http://www.w3.org/2000/svg',
-    'svg',
-  );
-  icon.setAttribute('viewBox', '0 0 18 18');
-  icon.setAttribute('aria-hidden', 'true');
-  icon.classList.add('auth-dialog__google-icon');
-  icon.innerHTML = `
-    <path fill="#4285f4" d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.797 2.716v2.26h2.909c1.702-1.567 2.684-3.874 2.684-6.616Z"/>
-    <path fill="#34a853" d="M9 18c2.43 0 4.468-.806 5.956-2.179l-2.91-2.26c-.806.54-1.835.86-3.046.86-2.344 0-4.328-1.585-5.037-3.714H.956v2.332A9 9 0 0 0 9 18Z"/>
-    <path fill="#fbbc05" d="M3.963 10.707A5.41 5.41 0 0 1 3.681 9c0-.592.102-1.168.282-1.707V4.961H.956A9 9 0 0 0 0 9c0 1.452.347 2.827.956 4.039l3.007-2.332Z"/>
-    <path fill="#ea4335" d="M9 3.579c1.321 0 2.507.454 3.44 1.345l2.581-2.581C13.464.891 11.426 0 9 0A9 9 0 0 0 .956 4.961l3.007 2.332C4.672 5.164 6.656 3.579 9 3.579Z"/>
-  `;
-  return icon;
+function shouldReduceMotion(): boolean {
+  return matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function createTab(label: string, mode: AuthMode): HTMLButtonElement {
@@ -127,49 +25,6 @@ function createTab(label: string, mode: AuthMode): HTMLButtonElement {
   button.setAttribute('aria-controls', 'auth-dialog-panel');
   button.textContent = label;
   return button;
-}
-
-function createField(field: FieldDefinition): HTMLLabelElement {
-  const label: HTMLLabelElement = document.createElement('label');
-  label.className = 'auth-dialog__field';
-
-  const labelText: HTMLSpanElement = document.createElement('span');
-  labelText.textContent = field.label;
-
-  const control: HTMLSpanElement = document.createElement('span');
-  control.className = 'auth-dialog__control';
-  const fieldIcon: SVGSVGElement = createIcon(field.icon);
-  fieldIcon.classList.add('auth-dialog__field-icon');
-
-  const input: HTMLInputElement = document.createElement('input');
-  input.name = field.name;
-  input.type = field.type;
-  input.placeholder = field.placeholder;
-  input.autocomplete = field.autocomplete;
-  input.required = true;
-
-  control.append(fieldIcon, input);
-
-  if (field.type === 'password') {
-    const toggle: HTMLButtonElement = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'auth-dialog__password-toggle';
-    toggle.setAttribute('aria-label', `Show ${field.label.toLowerCase()}`);
-    toggle.append(createIcon('eye'));
-    toggle.addEventListener('click', (): void => {
-      const isShowingPassword: boolean = input.type === 'password';
-      input.type = isShowingPassword ? 'text' : 'password';
-      toggle.classList.toggle('is-visible', isShowingPassword);
-      toggle.setAttribute(
-        'aria-label',
-        `${isShowingPassword ? 'Hide' : 'Show'} ${field.label.toLowerCase()}`,
-      );
-    });
-    control.append(toggle);
-  }
-
-  label.append(labelText, control);
-  return label;
 }
 
 /*
@@ -208,6 +63,10 @@ export function createAuthDialog(): AuthDialogController {
 
   const fields: HTMLDivElement = document.createElement('div');
   fields.className = 'auth-dialog__fields';
+  const status: HTMLParagraphElement = document.createElement('p');
+  status.className = 'auth-dialog__status';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
   const forgotPassword: HTMLButtonElement = document.createElement('button');
   forgotPassword.type = 'button';
   forgotPassword.className = 'auth-dialog__forgot';
@@ -238,6 +97,7 @@ export function createAuthDialog(): AuthDialogController {
     title,
     description,
     form,
+    status,
     divider,
     googleButton,
     alternateAction,
@@ -249,7 +109,18 @@ export function createAuthDialog(): AuthDialogController {
   let switchVersion: number;
   switchVersion = 0;
   let closeTimer: number | undefined;
+  let submitTimer: number | undefined;
   let previouslyFocused: HTMLElement | null = null;
+  const eventController: AbortController = new AbortController();
+  const { signal }: AbortController = eventController;
+
+  const setStatus: (message?: string, isError?: boolean) => void = (
+    message?: string,
+    isError?: boolean,
+  ): void => {
+    status.textContent = message ?? '';
+    status.classList.toggle('is-error', isError ?? false);
+  };
 
   const setTabState: (mode: AuthMode) => void = (mode: AuthMode): void => {
     const isLogin: boolean = mode === AuthMode.Login;
@@ -268,6 +139,7 @@ export function createAuthDialog(): AuthDialogController {
   const render: (mode: AuthMode) => void = (mode: AuthMode): void => {
     activeMode = mode;
     const isLogin: boolean = mode === AuthMode.Login;
+    setStatus();
     setTabState(mode);
     title.textContent = isLogin ? 'Welcome Back!' : 'Create Account';
     description.textContent = isLogin
@@ -275,7 +147,7 @@ export function createAuthDialog(): AuthDialogController {
       : 'Join MiniGames to track your score & streak.';
     fields.replaceChildren(
       ...fieldsByMode[mode].map((field: FieldDefinition): HTMLLabelElement =>
-        createField(field),
+        createField(field, signal),
       ),
     );
     forgotPassword.hidden = !isLogin;
@@ -290,9 +162,13 @@ export function createAuthDialog(): AuthDialogController {
     const alternateButton: HTMLButtonElement = document.createElement('button');
     alternateButton.type = 'button';
     alternateButton.textContent = isLogin ? 'Register' : 'Login';
-    alternateButton.addEventListener('click', (): void => {
-      switchMode(isLogin ? AuthMode.Register : AuthMode.Login);
-    });
+    alternateButton.addEventListener(
+      'click',
+      (): void => {
+        switchMode(isLogin ? AuthMode.Register : AuthMode.Login);
+      },
+      { signal },
+    );
     alternateAction.replaceChildren(alternateText, alternateButton);
   };
 
@@ -300,6 +176,10 @@ export function createAuthDialog(): AuthDialogController {
     if (mode === activeMode) return;
     const version: number = ++switchVersion;
     for (const animation of panel.getAnimations()) animation.cancel();
+    if (shouldReduceMotion()) {
+      render(mode);
+      return;
+    }
     const outAnimation: Animation = panel.animate(
       [
         { opacity: 1, transform: 'translateX(0)' },
@@ -348,38 +228,113 @@ export function createAuthDialog(): AuthDialogController {
     closeTimer = setTimeout(finishClose, 300);
   };
 
-  loginTab.addEventListener('click', (): void => {
-    switchMode(AuthMode.Login);
-  });
-  registerTab.addEventListener('click', (): void => {
-    switchMode(AuthMode.Register);
-  });
-  tabs.addEventListener('keydown', (event: KeyboardEvent): void => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-    event.preventDefault();
-    const nextMode: AuthMode =
-      activeMode === AuthMode.Login ? AuthMode.Register : AuthMode.Login;
-    switchMode(nextMode);
-    (nextMode === AuthMode.Login ? loginTab : registerTab).focus();
-  });
-  dialog.addEventListener('click', (event: MouseEvent): void => {
-    if (event.target === dialog) requestClose();
-  });
-  dialog.addEventListener('cancel', (event: Event): void => {
-    event.preventDefault();
-    requestClose();
-  });
-  dialog.addEventListener('close', (): void => {
-    clearTimeout(closeTimer);
-    closeTimer = undefined;
-    dialog.classList.remove('is-closing', 'is-visible');
-    document.body.classList.remove('is-overlay-open');
-    previouslyFocused?.focus();
-    previouslyFocused = null;
-  });
-  form.addEventListener('submit', (event: SubmitEvent): void => {
-    event.preventDefault();
-  });
+  loginTab.addEventListener(
+    'click',
+    (): void => {
+      switchMode(AuthMode.Login);
+    },
+    { signal },
+  );
+  registerTab.addEventListener(
+    'click',
+    (): void => {
+      switchMode(AuthMode.Register);
+    },
+    { signal },
+  );
+  tabs.addEventListener(
+    'keydown',
+    (event: KeyboardEvent): void => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const nextMode: AuthMode =
+        activeMode === AuthMode.Login ? AuthMode.Register : AuthMode.Login;
+      switchMode(nextMode);
+      (nextMode === AuthMode.Login ? loginTab : registerTab).focus();
+    },
+    { signal },
+  );
+  dialog.addEventListener(
+    'click',
+    (event: MouseEvent): void => {
+      if (event.target === dialog) requestClose();
+    },
+    { signal },
+  );
+  dialog.addEventListener(
+    'cancel',
+    (event: Event): void => {
+      event.preventDefault();
+      requestClose();
+    },
+    { signal },
+  );
+  dialog.addEventListener(
+    'close',
+    (): void => {
+      clearTimeout(closeTimer);
+      closeTimer = undefined;
+      dialog.classList.remove('is-closing', 'is-visible');
+      unlockScroll('authentication');
+      previouslyFocused?.focus();
+      previouslyFocused = null;
+    },
+    { signal },
+  );
+  form.addEventListener(
+    'submit',
+    (event: SubmitEvent): void => {
+      event.preventDefault();
+      const passwordField: Element | RadioNodeList | null =
+        form.elements.namedItem('password');
+      const confirmationField: Element | RadioNodeList | null =
+        form.elements.namedItem('confirm-password');
+      const arePasswordsDifferent: boolean =
+        activeMode === AuthMode.Register &&
+        passwordField instanceof HTMLInputElement &&
+        confirmationField instanceof HTMLInputElement &&
+        passwordField.value !== confirmationField.value;
+      if (arePasswordsDifferent) {
+        if (confirmationField instanceof HTMLInputElement) {
+          confirmationField.setCustomValidity('Passwords do not match.');
+          confirmationField.reportValidity();
+        }
+        setStatus('Passwords do not match. Please check both fields.', true);
+        return;
+      }
+
+      setStatus(
+        activeMode === AuthMode.Login
+          ? 'You are signed in to this demo.'
+          : 'Your demo account has been created.',
+      );
+      submitButton.disabled = true;
+      submitTimer = setTimeout((): void => {
+        submitButton.disabled = false;
+        requestClose();
+      }, 700);
+    },
+    { signal },
+  );
+  form.addEventListener(
+    'input',
+    (event: Event): void => {
+      if (!(event.target instanceof HTMLInputElement)) return;
+      event.target.setCustomValidity('');
+      setStatus();
+    },
+    { signal },
+  );
+  forgotPassword.addEventListener(
+    'click',
+    (): void => {
+      setStatus('Password recovery is available at developers@minigames.com.');
+    },
+    { signal },
+  );
+  googleButton.disabled = true;
+  googleButton.title =
+    'Google sign-in requires a server-side OAuth integration.';
 
   render(AuthMode.Login);
 
@@ -402,10 +357,26 @@ export function createAuthDialog(): AuthDialogController {
         dialog.showModal();
       }
 
-      document.body.classList.add('is-overlay-open');
+      lockScroll('authentication');
       requestAnimationFrame((): void => {
         dialog.classList.add('is-visible');
       });
+    },
+    close(): void {
+      requestClose();
+    },
+    setMode(mode: AuthMode): void {
+      switchMode(mode);
+    },
+    destroy(): void {
+      clearTimeout(closeTimer);
+      clearTimeout(submitTimer);
+      eventController.abort();
+      for (const animation of panel.getAnimations()) animation.cancel();
+      unlockScroll('authentication');
+      if (dialog.open) dialog.close();
+      previouslyFocused?.focus();
+      previouslyFocused = null;
     },
   };
 }

@@ -2,7 +2,7 @@
 
 // Colors
 $color-white: #ffffff;
-$color-black: #000000;
+$color-black: #111111;
 $color-background: #f9f8f3;
 $color-on-background: #5f5d75;
 $color-on-background-muted: #737380;
@@ -94,12 +94,14 @@ $section-space-mobile: $size-8; // 64px
 $header-height-desktop: 85px; // 85px
 $header-height-tablet: $size-9;
 $header-height-mobile: $size-8;
-$logo-size: $size-4;
+$logo-size: 30px;
 $hero-height-desktop: 627px; // 627px
 $hero-height-tablet: 383px; // 383px
 $hero-height-mobile: 331px; // 331px
 $hero-card-width-desktop: 640px; // 640px
 $hero-card-width-tablet: 480px; // 480px
+$hero-mobile-switch-width: $hero-card-width-tablet +
+  (2 * $container-gutter-tablet); // 560px
 $hero-background-scale: 120%;
 $hero-background-offset-inline: -10%;
 $hero-background-offset-block: -14%;
@@ -114,6 +116,7 @@ $breakpoints: (
   'tablet': 768px,
   'desktop': 1920px,
 );
+$classic-scrollbar-width: 15px;
 
 // Corner radii
 $radius-extra-small: $size-0-5;
@@ -148,7 +151,7 @@ $z-index-overlay-control: 102;
 $transition-reduced: 1ms;
 
 // Typography
-$font-family-primary: 'Roboto', sans-serif;
+$font-family-primary: 'Inter', sans-serif;
 $font-family-secondary: 'Inter', sans-serif;
 $font-size-display-large: 56px; // 56px
 $font-size-display-medium: 36px; // 36px

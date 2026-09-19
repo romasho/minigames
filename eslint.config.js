@@ -44,5 +44,22 @@ export default tseslint.config(
       'unicorn/prevent-abbreviations': 'off',
     },
   },
+  {
+    files: ['src/pages/home/**/*.ts'],
+    rules: {
+      '@typescript-eslint/typedef': [
+        'error',
+        {
+          arrayDestructuring: true,
+          arrowParameter: true,
+          memberVariableDeclaration: true,
+          objectDestructuring: true,
+          parameter: true,
+          propertyDeclaration: true,
+          variableDeclaration: false,
+        },
+      ],
+    },
+  },
   prettier,
 );
