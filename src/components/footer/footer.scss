@@ -164,15 +164,10 @@
     }
   }
 
-  &__rs-mark {
-    display: grid;
-    width: 18px;
-    height: 18px;
-    place-items: center;
-    color: ds.$color-primary;
-    font-size: 7px;
-    font-weight: ds.$font-weight-extra-bold;
-    letter-spacing: -0.5px;
+  &__rs-logo {
+    display: block;
+    width: 24px;
+    height: 24px;
   }
 
   &__developer-icon {
@@ -199,6 +194,11 @@
     &__inner {
       width: calc(100% - (2 * ds.$container-gutter-tablet));
       padding-block: ds.$size-5;
+    }
+
+    &__rs-logo {
+      width: 20px;
+      height: 20px;
     }
 
     &__content {

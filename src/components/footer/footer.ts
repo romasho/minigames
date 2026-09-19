@@ -2,6 +2,7 @@ import logoUrl from '../../assets/icons/Vector.svg';
 import codeIconUrl from '../../assets/icons/code-xml.svg';
 import messageIconUrl from '../../assets/icons/message-square-text.svg';
 import rssIconUrl from '../../assets/icons/rss.svg';
+import rsSchoolIconUrl from '../../assets/icons/rs-school.svg';
 import shareIconUrl from '../../assets/icons/share-2.svg';
 import './footer.scss';
 
@@ -121,11 +122,13 @@ function createCourseLink(): HTMLAnchorElement {
   link.href = 'https://rs.school/courses/short-track';
   link.textContent = 'RS School';
 
-  const mark: HTMLSpanElement = document.createElement('span');
-  mark.className = 'app-footer__rs-mark';
-  mark.setAttribute('aria-hidden', 'true');
-  mark.textContent = 'RS';
-  link.prepend(mark);
+  const icon: HTMLImageElement = document.createElement('img');
+  icon.className = 'app-footer__rs-logo';
+  icon.src = rsSchoolIconUrl;
+  icon.alt = '';
+  icon.width = 24;
+  icon.height = 24;
+  link.prepend(icon);
   return link;
 }
 
