@@ -87,12 +87,13 @@
       box-shadow ds.$transition-fast ease,
       transform ds.$transition-fast ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: ds.$color-primary-soft;
       box-shadow: ds.$shadow-level-1;
     }
 
-    &:active {
+    &:active:not(:disabled) {
+      background: ds.$color-primary-strong;
       box-shadow: none;
       transform: translate(ds.$size-0-5, ds.$size-0-5);
     }
@@ -223,11 +224,12 @@
       box-shadow ds.$transition-fast ease,
       transform ds.$transition-fast ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: ds.$color-primary-soft;
     }
 
-    &:active {
+    &:active:not(:disabled) {
+      background: ds.$color-primary-strong;
       box-shadow: none;
       transform: translate(ds.$size-0-5, ds.$size-0-5);
     }
@@ -238,6 +240,14 @@
 
     &:first-child {
       background: ds.$color-white;
+
+      &:hover:not(:disabled) {
+        background: ds.$color-primary-soft;
+      }
+
+      &:active:not(:disabled) {
+        background: ds.$color-primary-strong;
+      }
     }
   }
 
@@ -895,11 +905,12 @@
       box-shadow ds.$transition-fast ease,
       transform ds.$transition-fast ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: ds.$color-primary-soft;
     }
 
-    &:active {
+    &:active:not(:disabled) {
+      background: ds.$color-primary-strong;
       box-shadow: none;
       transform: translate(ds.$size-0-5, ds.$size-0-5);
     }

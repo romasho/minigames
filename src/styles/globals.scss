@@ -71,6 +71,10 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+}
+
 .legal-page {
   width: min(100% - 32px, 720px);
   min-height: 60vh;

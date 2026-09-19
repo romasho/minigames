@@ -118,12 +118,13 @@
     background: ds.$color-primary;
   }
 
-  &__button:hover {
+  &__button:hover:not(:disabled) {
     background: ds.$color-primary-soft;
     box-shadow: ds.$shadow-level-1;
   }
 
-  &__button:active {
+  &__button:active:not(:disabled) {
+    background: ds.$color-primary-strong;
     box-shadow: none;
     transform: translate(ds.$size-0-5, ds.$size-0-5);
   }
@@ -147,6 +148,10 @@
     border-radius: ds.$radius-small;
     background: transparent;
     transition: background ds.$transition-medium ease;
+
+    &:hover {
+      background: ds.$color-surface;
+    }
   }
 
   &__menu-toggle span {
@@ -181,6 +186,12 @@
     top: ds.$size-3;
     right: ds.$size-3;
     background: ds.$color-footer-raised;
+
+    &:hover {
+      background: ds.$color-footer-hover;
+      outline: ds.$control-border-width solid ds.$color-primary;
+      outline-offset: 0;
+    }
   }
 
   &.is-menu-open &__menu-toggle span {

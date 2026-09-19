@@ -77,7 +77,7 @@
       background ds.$transition-fast ease;
 
     &:hover:not(.is-active) {
-      background: ds.$color-secondary;
+      background: ds.$color-surface;
       color: ds.$color-on-primary;
     }
 
@@ -258,7 +258,7 @@
       box-shadow ds.$transition-fast ease,
       transform ds.$transition-fast ease;
 
-    &:active {
+    &:active:not(:disabled) {
       box-shadow: none;
       transform: translateY(ds.$size-0-5);
     }
@@ -274,7 +274,7 @@
     background: ds.$color-primary;
     box-shadow: 0 ds.$size-0-5 0 ds.$color-on-primary;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: ds.$color-primary-soft;
     }
   }
@@ -305,7 +305,7 @@
     align-items: center;
     justify-content: center;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: ds.$color-secondary;
     }
   }
