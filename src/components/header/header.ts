@@ -5,6 +5,7 @@ import {
   createAuthDialog,
 } from '../dialogs/auth-dialog';
 import { lockScroll, unlockScroll } from '../../utils/scroll-lock';
+import { appUrl } from '../../app/urls';
 import './header.scss';
 
 interface NavigationItem {
@@ -14,10 +15,10 @@ interface NavigationItem {
 }
 
 const navigationItems: readonly NavigationItem[] = [
-  { label: 'Home', href: '/#top', isCurrent: true },
-  { label: 'Library', href: '/#new-games-title' },
-  { label: 'Tournaments', href: '/#leaderboard' },
-  { label: 'Community', href: '/#developers' },
+  { label: 'Home', href: appUrl('#top'), isCurrent: true },
+  { label: 'Library', href: appUrl('#new-games-title') },
+  { label: 'Tournaments', href: appUrl('#leaderboard') },
+  { label: 'Community', href: appUrl('#developers') },
 ];
 
 export interface HeaderController {
@@ -28,7 +29,7 @@ export interface HeaderController {
 function createBrand(): HTMLAnchorElement {
   const brand: HTMLAnchorElement = document.createElement('a');
   brand.className = 'app-header__brand';
-  brand.href = '/';
+  brand.href = appUrl();
   brand.setAttribute('aria-label', 'MiniGames home');
 
   const logo: HTMLImageElement = document.createElement('img');

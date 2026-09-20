@@ -1,4 +1,5 @@
 import { createHomePage } from '../pages/home/home-page';
+import { appUrl, getRoutePath } from './urls';
 
 export enum RoutePath {
   Home = '/',
@@ -31,7 +32,7 @@ function createLegalPage(title: string, content: string): HTMLElement {
   const paragraph: HTMLParagraphElement = document.createElement('p');
   paragraph.textContent = content;
   const homeLink: HTMLAnchorElement = document.createElement('a');
-  homeLink.href = '/';
+  homeLink.href = appUrl();
   homeLink.textContent = 'Return to MiniGames home';
   page.append(heading, paragraph, homeLink);
   return page;
@@ -60,7 +61,7 @@ const routes: readonly RouteDefinition[] = [
 
 export const router: Router = {
   start(): HTMLElement {
-    const currentPath: string = location.pathname;
+    const currentPath: string = getRoutePath();
     const route: RouteDefinition = routes.find(
       (candidate: RouteDefinition): boolean => candidate.path === currentPath,
     ) ?? { path: RoutePath.NotFound, render: createNotFoundPage };

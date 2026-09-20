@@ -4,6 +4,7 @@ import messageIconUrl from '../../assets/icons/message-square-text.svg';
 import rssIconUrl from '../../assets/icons/rss.svg';
 import rsSchoolIconUrl from '../../assets/icons/rs-school.svg';
 import shareIconUrl from '../../assets/icons/share-2.svg';
+import { appUrl } from '../../app/urls';
 import './footer.scss';
 
 interface FooterLinkGroup {
@@ -20,19 +21,19 @@ const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
   {
     title: 'Explore',
     links: [
-      { label: 'Home', href: '/#top' },
-      { label: 'Library', href: '/#new-games-title' },
-      { label: 'Categories', href: '/#new-games-title' },
-      { label: 'Tournaments', href: '/#leaderboard' },
+      { label: 'Home', href: appUrl('#top') },
+      { label: 'Library', href: appUrl('#new-games-title') },
+      { label: 'Categories', href: appUrl('#new-games-title') },
+      { label: 'Tournaments', href: appUrl('#leaderboard') },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'About Us', href: '/#developers' },
+      { label: 'About Us', href: appUrl('#developers') },
       { label: 'Contact', href: 'mailto:developers@minigames.com' },
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Privacy Policy', href: appUrl('privacy') },
+      { label: 'Terms of Service', href: appUrl('terms') },
     ],
   },
 ];
@@ -47,7 +48,7 @@ function createLink(label: string, href: string): HTMLAnchorElement {
 function createBrand(): HTMLAnchorElement {
   const brand: HTMLAnchorElement = document.createElement('a');
   brand.className = 'app-footer__brand';
-  brand.href = '/';
+  brand.href = appUrl();
   brand.setAttribute('aria-label', 'MiniGames home');
 
   const logo: HTMLImageElement = document.createElement('img');
@@ -108,9 +109,17 @@ function createCommunityGroup(): HTMLElement {
   const links: HTMLDivElement = document.createElement('div');
   links.className = 'app-footer__social-links';
   links.append(
-    createSocialLink('Share MiniGames', shareIconUrl, '/#top'),
-    createSocialLink('MiniGames community', messageIconUrl, '/#developers'),
-    createSocialLink('MiniGames RSS feed', rssIconUrl, '/#new-games-title'),
+    createSocialLink('Share MiniGames', shareIconUrl, appUrl('#top')),
+    createSocialLink(
+      'MiniGames community',
+      messageIconUrl,
+      appUrl('#developers'),
+    ),
+    createSocialLink(
+      'MiniGames RSS feed',
+      rssIconUrl,
+      appUrl('#new-games-title'),
+    ),
   );
   section.append(title, links);
   return section;
