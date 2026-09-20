@@ -2,7 +2,7 @@
 
 // Colors
 $color-white: #ffffff;
-$color-black: #000000;
+$color-black: #111111;
 $color-background: #f9f8f3;
 $color-on-background: #5f5d75;
 $color-on-background-muted: #737380;
@@ -19,6 +19,7 @@ $color-on-primary: #242145;
 $color-secondary: #f0eeff;
 $color-tertiary: #3a2ebf;
 $color-like: #ff4b4b;
+$color-rank-bronze: #b66d35;
 $color-error: #b3261e;
 $color-price-free: #0b8a8f;
 $color-outline: #e5e7eb;
@@ -49,6 +50,7 @@ $colors: (
   'secondary': $color-secondary,
   'tertiary': $color-tertiary,
   'like': $color-like,
+  'rank-bronze': $color-rank-bronze,
   'error': $color-error,
   'price-free': $color-price-free,
   'outline': $color-outline,
@@ -57,64 +59,113 @@ $colors: (
 );
 
 // Layout and spacing sizes
-$size-0-5: 0.25rem; // 4px
-$size-1: 0.5rem; // 8px
-$size-2: 1rem; // 16px
-$size-3: 1.5rem; // 24px
-$size-4: 2rem; // 32px
-$size-5: 2.5rem; // 40px
-$size-6: 3rem; // 48px
-$size-7: 3.5rem; // 56px
-$size-8: 4rem; // 64px
-$size-9: 4.5rem; // 72px
-$size-10: 5rem; // 80px
-$size-11: 5.5rem; // 88px
-$size-12: 6rem; // 96px
-$size-13: 6.5rem; // 104px
-$size-14: 7rem; // 112px
-$size-15: 7.5rem; // 120px
-$content-max-width: 105rem; // 1680px
+$size-0-5: 4px; // 4px
+$size-1: 8px; // 8px
+$size-2: 16px; // 16px
+$size-3: 24px; // 24px
+$size-4: 32px; // 32px
+$size-5: 40px; // 40px
+$size-6: 48px; // 48px
+$size-7: 56px; // 56px
+$size-8: 64px; // 64px
+$size-9: 72px; // 72px
+$size-10: 80px; // 80px
+$size-11: 88px; // 88px
+$size-12: 96px; // 96px
+$size-13: 104px; // 104px
+$size-14: 112px; // 112px
+$size-15: 120px; // 120px
+// Content widths for the three Figma frames.
+$container-width-desktop: 1680px; // 1680px at a 1920px viewport
+$container-width-tablet: 688px; // 688px at a 768px viewport
+$container-width-mobile: 343px; // 343px at a 375px viewport
+$layout-max-width: 1920px; // 1920px
+$container-gutter-desktop: 120px; // (1920px - 1680px) / 2
+$container-gutter-tablet: 40px; // (768px - 688px) / 2
+$container-gutter-mobile: 16px; // (375px - 343px) / 2
+$container-gutter-responsive: clamp(
+  $container-gutter-tablet,
+  6.25vw,
+  $container-gutter-desktop
+);
+$section-space-desktop: $size-14; // 112px
+$section-space-tablet: $size-10; // 80px
+$section-space-mobile: $size-8; // 64px
+$header-height-desktop: 85px; // 85px
+$header-height-tablet: $size-9;
+$header-height-mobile: $size-8;
+$logo-size: 30px;
+$hero-height-desktop: 627px; // 627px
+$hero-height-tablet: 383px; // 383px
+$hero-height-mobile: 331px; // 331px
+$hero-card-width-desktop: 640px; // 640px
+$hero-card-width-tablet: 480px; // 480px
+$hero-mobile-switch-width: $hero-card-width-tablet +
+  (2 * $container-gutter-tablet); // 560px
+$hero-background-scale: 120%;
+$hero-background-offset-inline: -10%;
+$hero-background-offset-block: -14%;
+$control-border-width: 2px; // 2px
+$dialog-border-width: 3px; // 3px
+$transition-fast: 180ms;
+$transition-medium: 300ms;
 
 // Responsive frames represented in Figma.
 $breakpoints: (
-  'mobile': 23.4375rem,
-  'tablet': 48rem,
-  'desktop': 120rem,
+  'mobile': 375px,
+  'tablet': 768px,
+  'desktop': 1920px,
 );
+$classic-scrollbar-width: 15px;
 
 // Corner radii
 $radius-extra-small: $size-0-5;
 $radius-small: $size-1;
-$radius-medium: 0.75rem; // 12px
+$radius-medium: 12px; // 12px
 $radius-large: $size-2;
 $radius-extra-large: $size-3;
-$radius-full: 624.9375rem; // 9999px
+$radius-full: 9999px; // 9999px
 
 // Button dimensions
 $button-large-padding-block: $size-2;
 $button-large-padding-inline: $size-3;
-$button-medium-padding-block: 0.625rem; // 10px
-$button-medium-padding-inline: 1.25rem; // 20px
+$button-medium-padding-block: 10px; // 10px
+$button-medium-padding-inline: 20px; // 20px
 $button-small-padding-block: $size-1;
 $button-small-padding-inline: $size-2;
 $button-icon-padding: $size-1;
+$button-height-large: 52px; // 52px
+$button-height-medium: 41px; // 41px, matches the desktop Figma control
+$button-height-small: 34px; // 34px, matches the tablet Figma control
+$dialog-max-width: 420px; // 420px
+$burger-line-top: 10px; // 10px
+$burger-line-middle: 15px; // 15px
+$burger-line-bottom: 20px; // 20px
+$opacity-disabled: 0.5;
+$opacity-overlay: 0.72;
+$opacity-hero-image: 0.2;
+$opacity-hero-overlay: 0.65;
+$z-index-header: 10;
+$z-index-overlay: 100;
+$z-index-overlay-control: 102;
+$transition-reduced: 1ms;
 
 // Typography
-$font-family-primary: 'Roboto', sans-serif;
+$font-family-primary: 'Inter', sans-serif;
 $font-family-secondary: 'Inter', sans-serif;
-$font-size-display-large: 3.5rem; // 56px
-$font-size-display-medium: 2.25rem; // 36px
+$font-size-display-large: 56px; // 56px
+$font-size-display-medium: 36px; // 36px
 $font-size-display-small: $size-3;
 $font-size-headline-large: $size-4;
 $font-size-headline-medium: $size-3;
-$font-size-headline-small: 1.25rem; // 20px
-$font-size-body-large: 1.125rem; // 18px
+$font-size-headline-small: 20px; // 20px
+$font-size-body-large: 18px; // 18px
 $font-size-body-medium: $size-2;
-$font-size-body-small: 0.875rem; // 14px
+$font-size-body-small: 14px; // 14px
 $font-size-label-extra-large: $size-2;
-$font-size-label-large: 0.875rem; // 14px
-$font-size-label-medium: 0.75rem; // 12px
-$font-size-label-small: 0.625rem; // 10px
+$font-size-label-large: 14px; // 14px
+$font-size-label-medium: 12px; // 12px
+$font-size-label-small: 10px; // 10px
 $font-weight-regular: 400;
 $font-weight-medium: 500;
 $font-weight-bold: 700;
@@ -122,5 +173,5 @@ $font-weight-extra-bold: 800;
 
 // Hard-edged elevation from the Figma guidebook.
 $shadow-level-1: $size-0-5 $size-0-5 0 $color-on-primary;
-$shadow-level-2: 0.375rem 0.375rem 0 $color-on-primary; // 6px
+$shadow-level-2: 6px 6px 0 $color-on-primary; // 6px
 $shadow-level-3: $size-1 $size-1 0 $color-on-primary;
