@@ -1,0 +1,476 @@
+@use '../../styles/abstracts' as ds;
+
+.game-details {
+  position: relative;
+  width: min(600px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  border: 1px solid ds.$color-outline-strong;
+  border-radius: 24px;
+  background: ds.$color-background;
+  color: ds.$color-on-primary;
+  box-shadow: 8px 8px 0 ds.$color-on-primary;
+  font-family: ds.$font-family-secondary;
+  font-size: ds.$font-size-body-medium;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &::backdrop {
+    background: rgba(ds.$color-footer, ds.$opacity-overlay);
+  }
+
+  svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  &__close {
+    position: absolute;
+    z-index: 1;
+    top: 16px;
+    right: 16px;
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    padding: 0;
+    border: 2px solid ds.$color-on-primary;
+    border-radius: 50%;
+    background: ds.$color-white;
+    color: ds.$color-on-primary;
+    cursor: pointer;
+  }
+
+  &__close svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &__image {
+    display: block;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+  }
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  &__heading h2 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  &__rating,
+  &__likes {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__rating svg {
+    width: 18px;
+    height: 18px;
+    color: ds.$color-primary;
+  }
+
+  &__likes svg {
+    width: 20px;
+    height: 20px;
+    color: ds.$color-like;
+  }
+
+  &__description {
+    margin: 0;
+    color: ds.$color-on-background;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  &__specs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+  }
+
+  &__specs > div {
+    min-width: 0;
+    min-height: 56px;
+    padding: 8px 12px;
+    border: 1px solid ds.$color-outline;
+    border-radius: 10px;
+    background: ds.$color-white;
+    box-shadow: 3px 3px 0 ds.$color-on-primary;
+  }
+
+  &__specs dt {
+    color: ds.$color-on-background-muted;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  &__specs dd {
+    margin: 4px 0 0;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  &__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 8px 16px;
+    border: 2px solid ds.$color-on-primary;
+    border-radius: 12px;
+    background: ds.$color-white;
+    color: ds.$color-on-primary;
+    box-shadow: 4px 4px 0 ds.$color-on-primary;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  &__button--primary,
+  &__favorite[aria-pressed='true'] {
+    background: ds.$color-primary;
+  }
+
+  &__favorite[aria-pressed='true'] svg {
+    fill: ds.$color-like;
+    color: ds.$color-like;
+  }
+
+  &__button:hover,
+  &__close:hover,
+  &__send:hover {
+    background: ds.$color-primary-soft;
+  }
+
+  &__records h3,
+  &__comments > h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  &__records h3 svg {
+    width: 18px;
+    height: 18px;
+    color: #d39d1a;
+  }
+
+  &__records ol {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__records li {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 0 16px;
+    border-radius: 10px;
+    background: ds.$color-white;
+    font-size: 14px;
+  }
+
+  &__medal {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  &__player,
+  &__score {
+    font-weight: 700;
+  }
+
+  &__records time {
+    color: ds.$color-on-background-muted;
+    font-size: 12px;
+  }
+
+  &__comments > h3 {
+    margin-bottom: 16px;
+  }
+
+  &__composer {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  &__avatar {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    flex: none;
+    place-items: center;
+    border: 1px solid ds.$color-on-primary;
+    border-radius: 50%;
+    background: ds.$color-avatar-3;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  &__avatar--self {
+    width: 40px;
+    height: 40px;
+    background: ds.$color-primary;
+    font-size: 14px;
+  }
+
+  &__avatar--2 {
+    background: ds.$color-primary;
+  }
+
+  &__avatar--3 {
+    background: ds.$color-avatar-1;
+  }
+
+  &__composer textarea {
+    width: 100%;
+    min-height: 48px;
+    max-height: 144px;
+    padding: 12px 16px;
+    overflow-y: auto;
+    resize: none;
+    border: 1px solid ds.$color-on-primary;
+    border-radius: 8px;
+    background: ds.$color-white;
+    color: ds.$color-on-primary;
+    font: inherit;
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  &__composer textarea::placeholder {
+    color: ds.$color-placeholder;
+  }
+
+  &__send {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: ds.$color-on-primary;
+    color: ds.$color-white;
+    cursor: pointer;
+  }
+
+  &__send svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &__comment {
+    min-height: 126px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid ds.$color-outline;
+    border-radius: 12px;
+    background: ds.$color-white;
+    box-shadow: 3px 3px 0 ds.$color-on-primary;
+  }
+
+  &__comment-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__comment-heading h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__comment-heading time {
+    color: ds.$color-on-background-muted;
+    font-size: 12px;
+  }
+
+  &__comment p {
+    margin: 8px 0 2px;
+    color: ds.$color-on-primary;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  &__comment-like {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: ds.$color-on-primary;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  &__comment-like svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &__comment-like:hover,
+  &__comment-like[aria-pressed='true'] {
+    color: ds.$color-like;
+  }
+
+  &__comment-like[aria-pressed='true'] svg {
+    fill: ds.$color-like;
+  }
+
+  button:focus-visible,
+  textarea:focus-visible {
+    @include ds.focus-ring;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 700px) {
+  .game-details__heading {
+    flex-wrap: wrap;
+  }
+
+  .game-details__heading h2 {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .game-details {
+    width: min(375px, 100vw);
+    max-height: 100dvh;
+  }
+
+  .game-details__image {
+    height: 220px;
+  }
+
+  .game-details__content {
+    gap: 24px;
+    padding: 24px;
+  }
+
+  .game-details__heading {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .game-details__heading h2 {
+    flex-basis: 100%;
+    font-size: 36px;
+    white-space: normal;
+  }
+
+  .game-details__specs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-details__actions {
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 16px;
+  }
+
+  .game-details__favorite {
+    width: 48px;
+    min-height: 48px;
+    padding: 0;
+  }
+
+  .game-details__favorite span {
+    display: none;
+  }
+
+  .game-details__records li {
+    grid-template-columns: 18px minmax(0, 1fr) auto auto;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .game-details__records time {
+    font-size: 12px;
+  }
+
+  .game-details__composer {
+    gap: 16px;
+  }
+
+  .game-details__comment {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 340px) {
+  .game-details__content {
+    padding: 16px;
+  }
+
+  .game-details__heading h2 {
+    font-size: 32px;
+  }
+
+  .game-details__records li,
+  .game-details__records time {
+    font-size: 11px;
+  }
+}

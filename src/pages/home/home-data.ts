@@ -1,8 +1,9 @@
-import islandersCardUrl from '../../assets/games/islanders-new-shores-card.jpg';
-import organizedInsideCardUrl from '../../assets/games/organized-inside-card.jpg';
-import shelveThePotionsCardUrl from '../../assets/games/shelve-the-potions-card.jpg';
-import vacationCafeCardUrl from '../../assets/games/vacation-cafe-simulator-card.jpg';
-import winterBurrowCardUrl from '../../assets/games/winter-burrow-card.jpg';
+import {
+  formatLikes,
+  getCardImage,
+  getGame,
+  type SeedGame,
+} from '../../data/games';
 
 export interface GameCard {
   readonly imageUrl: string;
@@ -23,39 +24,26 @@ export interface LeaderboardPlayer {
   readonly favoriteGameName: string;
 }
 
-export const FEATURED_GAMES: readonly GameCard[] = [
-  {
-    imageUrl: organizedInsideCardUrl,
-    title: 'Organized Inside',
-    likes: '41.6K',
-    rating: '4.9',
-  },
-  {
-    imageUrl: islandersCardUrl,
-    title: 'ISLANDERS: New Shores',
-    likes: '54.2K',
-    rating: '4.9',
-  },
-  {
-    imageUrl: vacationCafeCardUrl,
-    title: 'Vacation Cafe Simulator',
-    likes: '28.7K',
-    rating: '4.8',
-    featured: true,
-  },
-  {
-    imageUrl: winterBurrowCardUrl,
-    title: 'Winter Burrow',
-    likes: '32.4K',
-    rating: '4.9',
-  },
-  {
-    imageUrl: shelveThePotionsCardUrl,
-    title: 'Shelve the Potions',
-    likes: '26.8K',
-    rating: '4.8',
-  },
+const featuredSlugs: readonly string[] = [
+  'organized-inside',
+  'islanders-new-shores',
+  'vacation-cafe-simulator',
+  'winter-burrow',
+  'shelve-the-potions',
 ];
+
+export const FEATURED_GAMES: readonly GameCard[] = featuredSlugs.map(
+  (slug: string, index: number): GameCard => {
+    const game: SeedGame = getGame(slug);
+    return {
+      imageUrl: getCardImage(game),
+      title: game.name,
+      likes: formatLikes(game.likesCount),
+      rating: game.rating.toFixed(1),
+      featured: index === 2,
+    };
+  },
+);
 
 export const LEADERBOARD_PLAYERS: readonly LeaderboardPlayer[] = [
   {
