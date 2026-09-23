@@ -30,6 +30,14 @@ function createGameCard(game: GameCard): HTMLElement {
   statistics.append(rating, likes);
   information.append(title, statistics);
   card.append(artwork, information);
+  const details: HTMLButtonElement = document.createElement('button');
+  details.type = 'button';
+  details.className = 'game-card__details-trigger';
+  details.setAttribute('aria-label', `Details for ${game.title}`);
+  details.addEventListener('click', (): void => {
+    details.dispatchEvent(new Event('open-game-details', { bubbles: true }));
+  });
+  card.append(details);
   return card;
 }
 

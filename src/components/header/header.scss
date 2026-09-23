@@ -14,7 +14,7 @@
     width: min(100%, ds.$layout-max-width);
     min-height: calc(ds.$header-height-desktop - ds.$control-border-width);
     margin-inline: auto;
-    padding: ds.$size-3 ds.$container-gutter-responsive;
+    padding: 22px ds.$container-gutter-responsive;
   }
 
   &__brand {
@@ -211,7 +211,7 @@
     transform: rotate(-45deg);
   }
 
-  @include ds.respond-at-most('tablet') {
+  @media (width <= calc(#{ds.breakpoint('tablet')} + #{ds.$classic-scrollbar-width})) {
     min-height: ds.$header-height-tablet;
 
     &__inner {
@@ -238,7 +238,7 @@
     }
   }
 
-  @include ds.respond-at-most('mobile') {
+  @media (width <= calc(#{ds.breakpoint('mobile')} + #{ds.$classic-scrollbar-width})) {
     min-height: ds.$header-height-mobile;
 
     &__inner {

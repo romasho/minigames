@@ -13,7 +13,7 @@
     );
     max-width: ds.$container-width-desktop;
     margin-inline: auto;
-    padding-block: ds.$size-6 ds.$size-5;
+    padding-block: ds.$size-5;
   }
 
   &__content {
@@ -135,8 +135,8 @@
     align-items: center;
     justify-content: space-between;
     gap: ds.$size-3;
-    margin-top: ds.$size-5;
-    padding-top: 20px;
+    margin-top: ds.$size-8;
+    padding-top: 24px;
     border-top: 1px solid rgba(ds.$color-on-footer, 0.12);
     font-size: ds.$font-size-body-small;
     line-height: 1.4;
@@ -190,7 +190,7 @@
     @include ds.focus-ring;
   }
 
-  @include ds.respond-at-most('tablet') {
+  @media (width <= calc(#{ds.breakpoint('tablet')} + #{ds.$classic-scrollbar-width})) {
     &__inner {
       width: calc(100% - (2 * ds.$container-gutter-tablet));
       padding-block: ds.$size-5;
@@ -218,6 +218,8 @@
 
     &__legal {
       gap: ds.$size-2;
+      margin-top: ds.$size-4;
+      padding-top: 22px;
     }
   }
 
@@ -225,7 +227,7 @@
   @media (width <= calc(#{ds.breakpoint('mobile')} + #{ds.$classic-scrollbar-width})) {
     &__inner {
       width: calc(100% - (2 * ds.$container-gutter-mobile));
-      padding-block: ds.$size-4 ds.$size-3;
+      padding-block: ds.$size-4 19px;
     }
 
     &__content {
