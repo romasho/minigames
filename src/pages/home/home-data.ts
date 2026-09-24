@@ -1,7 +1,7 @@
 import {
   formatLikes,
   getCardImage,
-  getGame,
+  SEED_GAMES,
   type SeedGame,
 } from '../../data/games';
 
@@ -10,7 +10,6 @@ export interface GameCard {
   readonly title: string;
   readonly likes: string;
   readonly rating: string;
-  readonly featured?: boolean;
 }
 
 export interface LeaderboardPlayer {
@@ -24,26 +23,16 @@ export interface LeaderboardPlayer {
   readonly favoriteGameName: string;
 }
 
-const featuredSlugs: readonly string[] = [
-  'organized-inside',
-  'islanders-new-shores',
-  'vacation-cafe-simulator',
-  'winter-burrow',
-  'shelve-the-potions',
-];
-
-export const FEATURED_GAMES: readonly GameCard[] = featuredSlugs.map(
-  (slug: string, index: number): GameCard => {
-    const game: SeedGame = getGame(slug);
-    return {
-      imageUrl: getCardImage(game),
-      title: game.name,
-      likes: formatLikes(game.likesCount),
-      rating: game.rating.toFixed(1),
-      featured: index === 2,
-    };
-  },
-);
+export const FEATURED_GAMES: readonly GameCard[] = SEED_GAMES.filter(
+  (game: SeedGame): boolean => game.featured,
+).map((game: SeedGame): GameCard => {
+  return {
+    imageUrl: getCardImage(game),
+    title: game.name,
+    likes: formatLikes(game.likesCount),
+    rating: game.rating.toFixed(1),
+  };
+});
 
 export const LEADERBOARD_PLAYERS: readonly LeaderboardPlayer[] = [
   {
