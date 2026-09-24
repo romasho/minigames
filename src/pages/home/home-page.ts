@@ -11,11 +11,19 @@ export function createHomePage(): HTMLElement {
   const page: HTMLElement = document.createElement('main');
   page.className = 'home-page';
   page.id = 'top';
+  const newGames = createNewGamesSection();
   page.append(
     createHeroSection(),
-    createNewGamesSection(),
+    newGames,
     createLeaderboardSection(),
     createDeveloperSection(),
+  );
+  page.addEventListener(
+    'page-disconnect',
+    (): void => {
+      newGames.dispatchEvent(new Event('page-disconnect'));
+    },
+    { once: true },
   );
   return page;
 }
