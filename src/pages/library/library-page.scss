@@ -60,13 +60,14 @@
 
 .library-chip {
   min-height: 33px;
-  padding: 0 10px;
+  padding: 8px 14px;
   border: 2px solid ds.$color-on-primary;
-  border-radius: ds.$radius-full;
+  border-radius: 16px;
   background: ds.$color-background;
   color: ds.$color-on-primary;
-  font-size: ds.$font-size-label-extra-large;
+  font-size: ds.$font-size-body-small;
   font-weight: ds.$font-weight-bold;
+  letter-spacing: 0px;
   transition:
     background ds.$transition-fast ease,
     box-shadow ds.$transition-fast ease;
@@ -99,10 +100,15 @@
   gap: 4px;
   padding: 0 20px;
   border: 2px solid ds.$color-on-primary;
-  border-radius: ds.$radius-small;
+  border-radius: ds.$radius-extra-large;
   background: ds.$color-background;
   color: ds.$color-on-primary;
   text-align: left;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0%;
+
   &:hover {
     background: ds.$color-surface;
   }
@@ -148,17 +154,18 @@
 .library-card {
   display: flex;
   min-width: 0;
-  min-height: 200px;
+  height: ds.$card-height-desktop;
   overflow: hidden;
-  border: 2.5px solid ds.$color-on-primary;
+  border: ds.$card-border-width solid ds.$color-on-primary;
   border-radius: ds.$radius-large;
   background: ds.$color-white;
-  box-shadow: ds.$shadow-level-2;
+  box-shadow: ds.$shadow-level-1;
 }
 .library-card__image {
   display: block;
-  width: 38.65%;
-  flex: 0 0 38.65%;
+  width: ds.$card-image-width-desktop;
+  max-width: 38.9%;
+  flex: 0 0 ds.$card-image-width-desktop;
   object-fit: cover;
 }
 .library-card__body {
@@ -166,31 +173,37 @@
   min-width: 0;
   flex: 1;
   flex-direction: column;
+  justify-content: space-between;
   padding: ds.$size-2;
 }
 .library-card__heading-row {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: ds.$size-1;
+  gap: ds.$size-2;
 }
 .library-card__title {
   min-width: 0;
   overflow: hidden;
   margin: 0;
   font-size: ds.$font-size-headline-medium;
-  line-height: 1.25;
+  font-weight: ds.$font-weight-bold;
+  line-height: normal;
+  letter-spacing: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .library-card__badge {
   flex: 0 0 auto;
-  padding: 4px 8px;
-  border: 1px solid ds.$color-on-primary;
-  border-radius: ds.$radius-full;
+  padding: ds.$size-0-5 ds.$size-1;
+  border: ds.$card-badge-border-width solid ds.$color-on-primary;
+  border-radius: ds.$radius-extra-large;
   background: ds.$color-secondary;
-  color: ds.$color-tertiary;
+  color: ds.$color-on-primary;
   font-size: ds.$font-size-label-medium;
+  font-weight: ds.$font-weight-bold;
+  line-height: normal;
+  letter-spacing: normal;
 }
 .library-card__price {
   flex: 0 0 auto;
@@ -198,16 +211,20 @@
   color: ds.$color-price-free;
   font-size: ds.$font-size-headline-medium;
   font-weight: ds.$font-weight-bold;
-  line-height: 1.25;
+  line-height: normal;
+  letter-spacing: normal;
 }
 .library-card__description {
   display: -webkit-box;
-  min-height: 0;
-  margin: ds.$size-2 0 auto;
+  height: ds.$card-description-height-desktop;
+  margin: 0;
   overflow: hidden;
   color: ds.$color-on-background;
   font-size: ds.$font-size-body-medium;
-  line-height: 1.25;
+  font-weight: ds.$font-weight-medium;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
@@ -216,23 +233,22 @@
   align-items: center;
   justify-content: space-between;
   gap: ds.$size-2;
-  margin-top: ds.$size-2;
 }
 .library-card__stats {
   display: flex;
   align-items: center;
-  gap: ds.$size-4;
-  font-size: ds.$font-size-body-small;
+  gap: ds.$size-3;
+  font-size: ds.$font-size-label-large;
   font-weight: ds.$font-weight-bold;
 }
 .library-card__stats > span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: ds.$size-0-5;
 }
 .library-card__stats svg {
-  width: 20px;
-  height: 20px;
+  width: ds.$size-3;
+  height: ds.$size-3;
 }
 .library-card__stats > span:first-child svg {
   color: ds.$color-primary;
@@ -242,13 +258,21 @@
 }
 
 .library-button {
-  min-height: 37px;
-  padding: 0 20px;
+  display: inline-flex;
+  width: ds.$card-button-width-desktop;
+  height: ds.$card-button-height-desktop;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   border: 2px solid ds.$color-on-primary;
   border-radius: ds.$radius-small;
   background: ds.$color-white;
   color: ds.$color-on-primary;
+  font-size: ds.$font-size-label-large;
   font-weight: ds.$font-weight-bold;
+  line-height: normal;
+  letter-spacing: normal;
   transition:
     background ds.$transition-fast ease,
     transform ds.$transition-fast ease;
@@ -329,6 +353,10 @@
     h1 {
       font-size: ds.$font-size-display-medium;
     }
+    p {
+      font-size: ds.$size-2;
+      font-weight: ds.$font-weight-regular;
+    }
   }
   .library-controls {
     min-height: 121px;
@@ -340,6 +368,12 @@
   .library-controls__chips-viewport {
     width: 100%;
     flex: 0 0 auto;
+  }
+  .library-controls__chips {
+    gap: ds.$size-1;
+  }
+  .library-chip {
+    padding-block: 6px;
   }
   .library-sort__trigger {
     min-width: 180px;
@@ -354,32 +388,50 @@
   .library-card {
     height: 152px;
     min-height: 0;
+    border: 0;
+    outline: ds.$card-border-width solid ds.$color-on-primary;
+    outline-offset: -#{ds.$card-border-width};
+  }
+
+  .library-pagination__controls,
+  .library-pagination__pages {
+    gap: ds.$size-1;
+  }
+  .library-card__image {
+    width: 270px;
+    max-width: none;
+    flex-basis: 270px;
   }
   .library-card__body {
-    padding: 12px;
+    padding: ds.$size-2;
   }
   .library-card__title {
-    font-size: ds.$font-size-body-large;
+    font-size: ds.$font-size-headline-small;
   }
   .library-card__price {
-    font-size: ds.$font-size-body-large;
+    font-size: ds.$font-size-headline-small;
   }
   .library-card__description {
+    height: auto;
     margin-top: ds.$size-1;
     font-size: ds.$font-size-body-small;
-    line-height: 1.25;
+    line-height: 1.4;
     -webkit-line-clamp: 2;
   }
   .library-card__footer {
     margin-top: ds.$size-1;
   }
-  .library-card__stats svg {
-    width: 16px;
-    height: 16px;
+  .library-card__stats {
+    gap: ds.$size-2;
   }
+
+  .library-card__stats span {
+    font-size: ds.$font-size-label-medium;
+  }
+
   .library-button {
-    min-height: 32px;
-    padding-inline: 12px;
+    width: ds.$size-10;
+    height: 33px;
   }
 }
 
@@ -412,16 +464,40 @@
     flex: none;
   }
   .library-controls__chips {
-    gap: 12px;
+    gap: ds.$size-1;
   }
   .library-chip {
+    flex: 0 0 auto;
     min-height: 31px;
-    padding-inline: 12px;
-    font-size: ds.$font-size-label-large;
+    padding: ds.$size-1 ds.$size-2;
+    border: 0;
+    background: ds.$color-white;
+    box-shadow: inset 0 0 0 ds.$control-border-width ds.$color-on-primary;
+    font-size: ds.$font-size-label-medium;
+    line-height: 15px;
+
+    // Figma mobile widths prevent font metric differences accumulating along the row.
+    @each $category,
+      $width
+        in (
+          'All Games': 92px,
+          'Puzzle': 72px,
+          'Card': 61px,
+          'Match': 70px,
+          'Farm': 62px,
+          'Strategy': 83px,
+          'Arcade': 75px
+        )
+    {
+      &[data-category='#{$category}'] {
+        min-width: $width;
+      }
+    }
   }
   .library-sort__trigger {
     width: calc(100vw - (2 * ds.$container-gutter-mobile));
     min-width: 0;
+    font-size: 12px;
   }
   .library-grid {
     grid-template-columns: 1fr;
@@ -431,9 +507,12 @@
     height: 392px;
     min-height: 0;
     flex-direction: column;
+    border: ds.$card-border-width solid ds.$color-on-primary;
+    outline: none;
   }
   .library-card__image {
     width: 100%;
+    max-width: none;
     height: 160px;
     flex: 0 0 160px;
   }
@@ -461,6 +540,7 @@
     align-items: center;
     padding: 1px 6px;
     font-size: ds.$font-size-label-small;
+    font-size: 12px;
   }
 
   .library-card__price {
@@ -485,24 +565,15 @@
     font-size: ds.$font-size-body-small;
   }
 
-  .library-card__stats svg {
-    width: 16px;
-    height: 16px;
-  }
   .library-button {
     width: 100%;
-    min-height: 36px;
+    height: 36px;
     grid-column: 1 / -1;
     grid-row: 5;
     margin-top: ds.$size-1;
-    padding-inline: 12px;
   }
   .library-pagination {
     padding-block: ds.$size-3;
-  }
-  .library-pagination__controls,
-  .library-pagination__pages {
-    gap: 10px;
   }
 }
 
