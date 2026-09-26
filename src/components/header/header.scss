@@ -1,16 +1,354 @@
 @use '../../styles/abstracts' as ds;
 
 .app-header {
-  min-height: ds.$size-11;
-  padding-inline: ds.$size-10;
-  width: 100%;
+  position: relative;
+  z-index: ds.$z-index-header;
+  min-height: ds.$header-height-desktop;
+  background: ds.$color-background;
+  font-family: ds.$font-family-secondary;
 
-  @include ds.respond-at-most('tablet') {
-    min-height: ds.$size-8;
-    padding-inline: ds.$size-3;
+  &__auth-actions {
+    width: ds.$auth-actions;
   }
 
-  @include ds.respond-at-most('mobile') {
-    padding-inline: ds.$size-2;
+  &__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: min(100%, ds.$layout-max-width);
+    min-height: calc(ds.$header-height-desktop - ds.$control-border-width);
+    margin-inline: auto;
+    padding: 22px ds.$size-10;
+    box-shadow: inset 0 calc(-1 * ds.$control-border-width) 0
+      ds.$color-on-primary;
+  }
+
+  &__brand {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: ds.$size-1;
+    align-items: center;
+    color: ds.$color-on-primary;
+    font-size: ds.$font-size-display-small;
+    font-weight: ds.$font-weight-bold;
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  &__brand:hover span {
+    color: ds.$color-tertiary;
+  }
+
+  &__brand:active {
+    transform: translateY(ds.$control-border-width);
+  }
+
+  &__brand:focus-visible,
+  &__navigation a:focus-visible,
+  &__button:focus-visible,
+  &__menu-toggle:focus-visible,
+  .mobile-navigation__links a:focus-visible {
+    @include ds.focus-ring;
+  }
+
+  &__logo {
+    display: block;
+    width: ds.$logo-size;
+    height: ds.$logo-size;
+    object-fit: contain;
+  }
+
+  &__desktop-actions,
+  &__navigation,
+  &__auth-actions,
+  &__tablet-actions {
+    display: flex;
+    align-items: center;
+  }
+
+  &__desktop-actions {
+    gap: ds.$size-4;
+  }
+
+  &__navigation {
+    gap: ds.$size-5;
+  }
+
+  &__navigation a {
+    color: ds.$color-on-background;
+    font-size: ds.$font-size-body-medium;
+    font-weight: ds.$font-weight-medium;
+    text-decoration: none;
+    transition: color ds.$transition-fast ease;
+
+    &:hover,
+    &.is-current {
+      color: ds.$color-on-primary;
+    }
+
+    &:active {
+      color: ds.$color-tertiary;
+    }
+  }
+
+  &__navigation a.is-current {
+    font-weight: ds.$font-weight-bold;
+  }
+
+  &__auth-actions,
+  &__tablet-actions {
+    gap: ds.$size-2;
+  }
+
+  &__button {
+    min-height: ds.$button-height-medium;
+    padding: ds.$size-1 ds.$button-medium-padding-inline;
+    border: ds.$control-border-width solid ds.$color-on-primary;
+    border-radius: ds.$radius-small;
+    color: ds.$color-on-primary;
+    font-size: ds.$font-size-label-large;
+    font-weight: ds.$font-weight-bold;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    transition:
+      background ds.$transition-fast ease,
+      box-shadow ds.$transition-fast ease,
+      transform ds.$transition-fast ease;
+  }
+
+  &__button--secondary,
+  &__button--mobile-secondary {
+    background: ds.$color-background;
+  }
+
+  &__button--primary {
+    background: ds.$color-primary;
+  }
+
+  &__button:hover:not(:disabled) {
+    background: ds.$color-primary-soft;
+    box-shadow: ds.$shadow-level-1;
+  }
+
+  &__button:active:not(:disabled) {
+    background: ds.$color-primary-strong;
+    box-shadow: none;
+    transform: translate(ds.$size-0-5, ds.$size-0-5);
+  }
+
+  &__button:disabled {
+    cursor: not-allowed;
+    opacity: ds.$opacity-disabled;
+  }
+
+  &__tablet-actions {
+    display: none;
+  }
+
+  &__menu-toggle {
+    position: relative;
+    display: none;
+    width: ds.$size-4;
+    height: ds.$size-4;
+    padding: ds.$size-1;
+    border: 0;
+    border-radius: ds.$radius-small;
+    background: ds.$color-white;
+    box-shadow: inset 0 0 0 ds.$control-border-width ds.$color-on-primary;
+    transition: background ds.$transition-medium ease;
+
+    &:hover {
+      background: ds.$color-surface;
+    }
+  }
+
+  &__menu-toggle span {
+    position: absolute;
+    left: calc((ds.$size-4 - (ds.$size-2 - ds.$control-border-width)) / 2);
+    width: calc(ds.$size-2 - ds.$control-border-width);
+    height: ds.$control-border-width;
+    border-radius: 0;
+    background: ds.$color-on-primary;
+    transition:
+      top ds.$transition-medium ease,
+      transform ds.$transition-medium ease,
+      opacity ds.$transition-fast ease,
+      background ds.$transition-medium ease;
+  }
+
+  &__menu-toggle span:nth-child(1) {
+    top: ds.$burger-line-top;
+  }
+
+  &__menu-toggle span:nth-child(2) {
+    top: calc(ds.$burger-line-top + ds.$size-0-5);
+  }
+
+  &__menu-toggle span:nth-child(3) {
+    top: calc(ds.$burger-line-top + ds.$size-1);
+  }
+
+  &.is-menu-open &__menu-toggle {
+    position: fixed;
+    z-index: ds.$z-index-overlay-control;
+    top: ds.$size-3;
+    right: ds.$size-3;
+    background: ds.$color-footer-raised;
+    box-shadow: none;
+
+    &:hover {
+      background: ds.$color-footer-hover;
+      outline: ds.$control-border-width solid ds.$color-primary;
+      outline-offset: 0;
+    }
+  }
+
+  &.is-menu-open &__menu-toggle span {
+    top: ds.$burger-line-middle;
+    left: ds.$size-1;
+    width: ds.$size-2;
+    border-radius: ds.$radius-full;
+    background: ds.$color-white;
+  }
+
+  &.is-menu-open &__menu-toggle span:nth-child(1) {
+    transform: rotate(45deg);
+  }
+
+  &.is-menu-open &__menu-toggle span:nth-child(2) {
+    opacity: 0;
+  }
+
+  &.is-menu-open &__menu-toggle span:nth-child(3) {
+    transform: rotate(-45deg);
+  }
+
+  @media (width <=calc(#{ds.breakpoint('tablet')} + #{ds.$classic-scrollbar-width})) {
+    min-height: ds.$header-height-tablet;
+
+    &__inner {
+      min-height: calc(ds.$header-height-tablet - ds.$control-border-width);
+      padding: ds.$size-2 ds.$container-gutter-tablet;
+    }
+
+    &__brand {
+      font-size: ds.$font-size-headline-small;
+    }
+
+    &__desktop-actions {
+      display: none;
+    }
+
+    &__tablet-sign-up {
+      min-height: ds.$button-height-small;
+      padding: ds.$button-small-padding-block ds.$button-small-padding-inline;
+    }
+
+    &__tablet-actions,
+    &__menu-toggle {
+      display: flex;
+    }
+  }
+
+  @media (width <=calc(#{ds.breakpoint('mobile')} + #{ds.$classic-scrollbar-width})) {
+    min-height: ds.$header-height-mobile;
+
+    &__inner {
+      min-height: calc(ds.$header-height-mobile - ds.$control-border-width);
+      padding: ds.$size-2 ds.$container-gutter-mobile;
+    }
+
+    &__tablet-sign-up {
+      display: none;
+    }
+  }
+}
+
+.mobile-navigation {
+  position: fixed;
+  z-index: ds.$z-index-overlay;
+  inset: 0;
+  display: flex;
+  visibility: hidden;
+  flex-direction: column;
+  gap: ds.$size-4;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: ds.$size-3;
+  overflow: hidden;
+  background: ds.$color-footer;
+  opacity: 0;
+  transform: translateX(100%);
+  transition:
+    visibility 0s linear ds.$transition-medium,
+    opacity ds.$transition-medium ease,
+    transform ds.$transition-medium ease;
+
+  &__header {
+    display: flex;
+    min-height: ds.$size-4;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__header .app-header__brand {
+    color: ds.$color-white;
+  }
+
+  &__links {
+    display: flex;
+    flex-direction: column;
+    gap: ds.$size-3;
+  }
+
+  &__links a {
+    width: fit-content;
+    color: ds.$color-on-footer;
+    font-size: ds.$font-size-body-large;
+    font-weight: ds.$font-weight-medium;
+    line-height: normal;
+    text-decoration: none;
+    transition: color ds.$transition-fast ease;
+  }
+
+  &__links a:hover,
+  &__links a:active,
+  &__links a.is-current {
+    color: ds.$color-primary;
+  }
+
+  &__links a.is-current {
+    font-weight: ds.$font-weight-bold;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: ds.$size-2;
+    margin-top: auto;
+  }
+
+  &__actions .app-header__button {
+    width: 100%;
+  }
+
+  &__actions .app-header__button--mobile-secondary {
+    background: ds.$color-white;
+  }
+}
+
+.app-header.is-menu-open .mobile-navigation {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-header__menu-toggle,
+  .app-header__menu-toggle span,
+  .mobile-navigation {
+    transition-duration: ds.$transition-reduced;
   }
 }

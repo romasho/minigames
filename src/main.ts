@@ -1,4 +1,4 @@
-import { bootstrap } from './app';
+import { startApp } from './app';
 import './styles/globals.scss';
 
-bootstrap();
+startApp();
