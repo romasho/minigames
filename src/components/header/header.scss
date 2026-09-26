@@ -7,6 +7,10 @@
   background: ds.$color-background;
   font-family: ds.$font-family-secondary;
 
+  &__auth-actions {
+    width: ds.$auth-actions;
+  }
+
   &__inner {
     display: flex;
     align-items: center;
@@ -14,7 +18,8 @@
     width: min(100%, ds.$layout-max-width);
     min-height: calc(ds.$header-height-desktop - ds.$control-border-width);
     margin-inline: auto;
-    padding: 22px ds.$container-gutter-responsive;
+    padding: 22px ds.$size-10;
+    box-shadow: inset 0 calc(-1 * ds.$control-border-width) 0 ds.$color-on-primary;
   }
 
   &__brand {
@@ -96,13 +101,14 @@
 
   &__button {
     min-height: ds.$button-height-medium;
-    padding: ds.$button-medium-padding-block ds.$button-medium-padding-inline;
+    padding: ds.$size-1 ds.$button-medium-padding-inline;
     border: ds.$control-border-width solid ds.$color-on-primary;
     border-radius: ds.$radius-small;
     color: ds.$color-on-primary;
     font-size: ds.$font-size-label-large;
     font-weight: ds.$font-weight-bold;
     line-height: 1;
+    letter-spacing: -0.5px;
     transition:
       background ds.$transition-fast ease,
       box-shadow ds.$transition-fast ease,
@@ -146,7 +152,8 @@
     padding: ds.$size-1;
     border: 0;
     border-radius: ds.$radius-small;
-    background: transparent;
+    background: ds.$color-white;
+    box-shadow: inset 0 0 0 ds.$control-border-width ds.$color-on-primary;
     transition: background ds.$transition-medium ease;
 
     &:hover {
@@ -156,10 +163,10 @@
 
   &__menu-toggle span {
     position: absolute;
-    left: ds.$size-1;
-    width: ds.$size-2;
+    left: calc((ds.$size-4 - (ds.$size-2 - ds.$control-border-width)) / 2);
+    width: calc(ds.$size-2 - ds.$control-border-width);
     height: ds.$control-border-width;
-    border-radius: ds.$radius-full;
+    border-radius: 0;
     background: ds.$color-on-primary;
     transition:
       top ds.$transition-medium ease,
@@ -173,11 +180,11 @@
   }
 
   &__menu-toggle span:nth-child(2) {
-    top: ds.$burger-line-middle;
+    top: calc(ds.$burger-line-top + ds.$size-0-5);
   }
 
   &__menu-toggle span:nth-child(3) {
-    top: ds.$burger-line-bottom;
+    top: calc(ds.$burger-line-top + ds.$size-1);
   }
 
   &.is-menu-open &__menu-toggle {
@@ -186,6 +193,7 @@
     top: ds.$size-3;
     right: ds.$size-3;
     background: ds.$color-footer-raised;
+    box-shadow: none;
 
     &:hover {
       background: ds.$color-footer-hover;
@@ -196,6 +204,9 @@
 
   &.is-menu-open &__menu-toggle span {
     top: ds.$burger-line-middle;
+    left: ds.$size-1;
+    width: ds.$size-2;
+    border-radius: ds.$radius-full;
     background: ds.$color-white;
   }
 
@@ -211,7 +222,7 @@
     transform: rotate(-45deg);
   }
 
-  @media (width <= calc(#{ds.breakpoint('tablet')} + #{ds.$classic-scrollbar-width})) {
+  @media (width <=calc(#{ds.breakpoint('tablet')} + #{ds.$classic-scrollbar-width})) {
     min-height: ds.$header-height-tablet;
 
     &__inner {
@@ -238,7 +249,7 @@
     }
   }
 
-  @media (width <= calc(#{ds.breakpoint('mobile')} + #{ds.$classic-scrollbar-width})) {
+  @media (width <=calc(#{ds.breakpoint('mobile')} + #{ds.$classic-scrollbar-width})) {
     min-height: ds.$header-height-mobile;
 
     &__inner {
@@ -334,6 +345,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .app-header__menu-toggle,
   .app-header__menu-toggle span,
   .mobile-navigation {

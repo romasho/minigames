@@ -76,6 +76,7 @@ $size-13: 104px; // 104px
 $size-14: 112px; // 112px
 $size-15: 120px; // 120px
 // Content widths for the three Figma frames.
+$auth-actions: 191px;
 $container-width-desktop: 1680px; // 1680px at a 1920px viewport
 $container-width-tablet: 688px; // 688px at a 768px viewport
 $container-width-mobile: 343px; // 343px at a 375px viewport
@@ -107,6 +108,13 @@ $hero-background-offset-inline: -10%;
 $hero-background-offset-block: -14%;
 $control-border-width: 2px; // 2px
 $dialog-border-width: 3px; // 3px
+$card-border-width: 2.5px;
+$card-badge-border-width: 1.5px;
+$card-height-desktop: 200px;
+$card-image-width-desktop: 320px;
+$card-description-height-desktop: 67px;
+$card-button-width-desktop: 88px;
+$card-button-height-desktop: 37px;
 $transition-fast: 180ms;
 $transition-medium: 300ms;
 

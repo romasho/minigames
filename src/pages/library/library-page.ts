@@ -111,6 +111,7 @@ export function createLibraryPage(): HTMLElement {
     const chip: HTMLButtonElement = document.createElement('button');
     chip.type = 'button';
     chip.className = 'library-chip';
+    chip.dataset.category = category;
     chip.textContent = category;
     chip.setAttribute('aria-pressed', String(index === 0));
     if (index === 0) chip.classList.add('is-active');
