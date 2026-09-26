@@ -19,7 +19,8 @@
     min-height: calc(ds.$header-height-desktop - ds.$control-border-width);
     margin-inline: auto;
     padding: 22px ds.$size-10;
-    box-shadow: inset 0 calc(-1 * ds.$control-border-width) 0 ds.$color-on-primary;
+    box-shadow: inset 0 calc(-1 * ds.$control-border-width) 0
+      ds.$color-on-primary;
   }
 
   &__brand {
@@ -345,7 +346,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .app-header__menu-toggle,
   .app-header__menu-toggle span,
   .mobile-navigation {

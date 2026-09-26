@@ -477,15 +477,18 @@
     line-height: 15px;
 
     // Figma mobile widths prevent font metric differences accumulating along the row.
-    @each $category, $width in (
-      'All Games': 92px,
-      'Puzzle': 72px,
-      'Card': 61px,
-      'Match': 70px,
-      'Farm': 62px,
-      'Strategy': 83px,
-      'Arcade': 75px
-    ) {
+    @each $category,
+      $width
+        in (
+          'All Games': 92px,
+          'Puzzle': 72px,
+          'Card': 61px,
+          'Match': 70px,
+          'Farm': 62px,
+          'Strategy': 83px,
+          'Arcade': 75px
+        )
+    {
       &[data-category='#{$category}'] {
         min-width: $width;
       }
