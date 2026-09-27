@@ -61,6 +61,7 @@ $colors: (
 // Layout and spacing sizes
 $size-0-5: 4px; // 4px
 $size-1: 8px; // 8px
+$size-1-5: 12px;
 $size-2: 16px; // 16px
 $size-3: 24px; // 24px
 $size-4: 32px; // 32px
@@ -96,6 +97,9 @@ $header-height-desktop: 85px; // 85px
 $header-height-tablet: $size-9;
 $header-height-mobile: $size-8;
 $logo-size: 30px;
+$icon-size-small: 18px;
+$icon-size-medium: 20px;
+$avatar-size-medium: 28px;
 $hero-height-desktop: 627px; // 627px
 $hero-height-tablet: 383px; // 383px
 $hero-height-mobile: 331px; // 331px
@@ -107,6 +111,7 @@ $hero-background-scale: 120%;
 $hero-background-offset-inline: -10%;
 $hero-background-offset-block: -14%;
 $control-border-width: 2px; // 2px
+$hairline-width: 1px;
 $dialog-border-width: 3px; // 3px
 $card-border-width: 2.5px;
 $card-badge-border-width: 1.5px;
@@ -125,6 +130,7 @@ $breakpoints: (
   'desktop': 1920px,
 );
 $classic-scrollbar-width: 15px;
+$viewport-mobile-width: 375px;
 
 // Corner radii
 $radius-extra-small: $size-0-5;
@@ -178,6 +184,14 @@ $font-weight-regular: 400;
 $font-weight-medium: 500;
 $font-weight-bold: 700;
 $font-weight-extra-bold: 800;
+$line-height-tightest: 1;
+$line-height-display: 1.1;
+$line-height-heading: 1.15;
+$line-height-compact: 1.2;
+$line-height-snug: 1.25;
+$line-height-regular: 1.4;
+$line-height-relaxed: 1.45;
+$line-height-body: 1.5;
 
 // Hard-edged elevation from the Figma guidebook.
 $shadow-level-1: $size-0-5 $size-0-5 0 $color-on-primary;

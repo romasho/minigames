@@ -1,5 +1,10 @@
 @use '../../styles/abstracts' as ds;
 
+$header-padding-block: 22px;
+$navigation-letter-spacing: -0.5px;
+$menu-open-rotation: 45deg;
+$menu-close-rotation: -45deg;
+
 .app-header {
   position: relative;
   z-index: ds.$z-index-header;
@@ -18,7 +23,7 @@
     width: min(100%, ds.$layout-max-width);
     min-height: calc(ds.$header-height-desktop - ds.$control-border-width);
     margin-inline: auto;
-    padding: 22px ds.$size-10;
+    padding: $header-padding-block ds.$size-10;
     box-shadow: inset 0 calc(-1 * ds.$control-border-width) 0
       ds.$color-on-primary;
   }
@@ -31,7 +36,7 @@
     color: ds.$color-on-primary;
     font-size: ds.$font-size-display-small;
     font-weight: ds.$font-weight-bold;
-    line-height: 1;
+    line-height: ds.$line-height-tightest;
     text-decoration: none;
   }
 
@@ -108,8 +113,8 @@
     color: ds.$color-on-primary;
     font-size: ds.$font-size-label-large;
     font-weight: ds.$font-weight-bold;
-    line-height: 1;
-    letter-spacing: -0.5px;
+    line-height: ds.$line-height-tightest;
+    letter-spacing: $navigation-letter-spacing;
     transition:
       background ds.$transition-fast ease,
       box-shadow ds.$transition-fast ease,
@@ -212,7 +217,7 @@
   }
 
   &.is-menu-open &__menu-toggle span:nth-child(1) {
-    transform: rotate(45deg);
+    transform: rotate($menu-open-rotation);
   }
 
   &.is-menu-open &__menu-toggle span:nth-child(2) {
@@ -220,7 +225,7 @@
   }
 
   &.is-menu-open &__menu-toggle span:nth-child(3) {
-    transform: rotate(-45deg);
+    transform: rotate($menu-close-rotation);
   }
 
   @media (width <=calc(#{ds.breakpoint('tablet')} + #{ds.$classic-scrollbar-width})) {

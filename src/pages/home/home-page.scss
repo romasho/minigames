@@ -1,6 +1,67 @@
+@use 'sass:list';
 @use '../../styles/abstracts' as ds;
 
-@mixin background-opacity($color, $opacity: 0.3) {
+$carousel-mobile-height: 200px;
+$carousel-medium-height: 280px;
+$carousel-height-intercept: 213.33px;
+$carousel-height-slope: 8.68vw;
+$carousel-desktop-height: 380px;
+$card-compact-width-threshold: 284px;
+$table-cell-gap: 10px;
+$tablet-table-row-height: 60px;
+$mobile-table-gap: 6px;
+$mobile-table-label-size: 9px;
+$decoration-top-offset: -160px;
+$decoration-top-size: 288px;
+$decoration-bottom-offset: -128px;
+$decoration-bottom-size: 320px;
+$developer-eyebrow-letter-spacing: 0.08em;
+$developer-heading-max-width: 608px;
+$developer-copy-max-width: 640px;
+$developer-illustration-basis: 680px;
+$developer-narrow-breakpoint: 1288px;
+$developer-screen-shadow-x: 26px;
+$developer-screen-shadow-y: 20px;
+$developer-mobile-button-line-height: 17px;
+$carousel-center-width-mobile: 216px;
+$carousel-center-width-tablet: 440px;
+$carousel-center-width-desktop: 800px;
+$carousel-side-width-tablet: 104px;
+$carousel-side-width-desktop: 280px;
+$carousel-side-offset: 128px;
+$carousel-side-width-fluid-offset: 456px;
+$carousel-center-width-fluid-intercept: 200px;
+$carousel-center-width-fluid-slope: 31.25vw;
+$carousel-side-width-fluid-intercept: -13.33px;
+$carousel-side-width-fluid-slope: 15.28vw;
+$carousel-mobile-side-half-width: 28px;
+$hero-fallback-opacity: 0.3;
+$hero-background-layer: -2;
+$carousel-center-layer: 2;
+$carousel-overlay-opacity: 0.96;
+$carousel-overlay-stop: 48%;
+$leaderboard-columns-desktop: (8%, 22%, 17%, 16%, 15%, 22%);
+$leaderboard-columns-tablet: (14%, 29%, 18%, 20%, 19%);
+$leaderboard-columns-mobile: (16%, 38%, 26%, 20%);
+$developer-decoration-opacity: 0.65;
+$developer-decoration-right: 23%;
+$developer-illustration-ratio: '17 / 12';
+$developer-illustration-grow: 1.176;
+$developer-window-top: 27%;
+$developer-window-left: 17%;
+$developer-window-width: 46%;
+$developer-window-height: 34%;
+$developer-code-top: 31%;
+$developer-code-left: 22%;
+$developer-code-width: 35%;
+$developer-code-line-long-width: 84%;
+$developer-code-line-medium-width: 62%;
+$developer-code-line-short-width: 42%;
+$developer-game-right: 9%;
+$developer-game-bottom: 12%;
+$developer-game-width: 24%;
+
+@mixin background-opacity($color, $opacity: $hero-fallback-opacity) {
   background: $color;
   /* The Fallback */
   background: rgba($color, $opacity);
@@ -21,7 +82,7 @@
   overflow: hidden;
   align-items: center;
   isolation: isolate;
-  @include background-opacity(ds.$color-footer, 0.65);
+  @include background-opacity(ds.$color-footer, ds.$opacity-hero-overlay);
 
   &__background,
   &__overlay {
@@ -30,7 +91,7 @@
   }
 
   &__background {
-    z-index: -2;
+    z-index: $hero-background-layer;
     top: ds.$hero-background-offset-block;
     left: ds.$hero-background-offset-inline;
     width: ds.$hero-background-scale;
@@ -62,14 +123,14 @@
     color: ds.$color-on-primary;
     font-size: ds.$font-size-display-large;
     font-weight: ds.$font-weight-bold;
-    line-height: 1.1;
+    line-height: ds.$line-height-display;
   }
 
   p {
     color: ds.$color-on-background;
     font-size: ds.$font-size-body-large;
     font-weight: ds.$font-weight-medium;
-    line-height: 1.5;
+    line-height: ds.$line-height-body;
   }
 
   &__description--mobile {
@@ -185,10 +246,13 @@
 }
 
 .games-carousel {
-  --center-card-width: min(216px, calc(100% - 128px));
+  --center-card-width: min(
+    #{$carousel-center-width-mobile},
+    calc(100% - #{$carousel-side-offset})
+  );
   --center-half-width: calc(var(--center-card-width) / 2);
-  --side-card-width: 56px;
-  --side-half-width: 28px;
+  --side-card-width: #{ds.$size-7};
+  --side-half-width: #{$carousel-mobile-side-half-width};
   --card-gap: #{ds.$size-1};
   --distance-1: calc(
     var(--center-half-width) + var(--side-half-width) + var(--card-gap)
@@ -217,7 +281,7 @@
     align-items: center;
     font-family: ds.$font-family-secondary;
     font-size: ds.$font-size-headline-medium;
-    line-height: 1.2;
+    line-height: ds.$line-height-compact;
 
     &::before {
       width: ds.$size-1;
@@ -288,7 +352,7 @@
 
   &__track {
     position: relative;
-    height: 200px;
+    height: $carousel-mobile-height;
   }
 
   &__track > .game-card {
@@ -307,7 +371,7 @@
   }
 
   &__track > .game-card[data-slot='0'] {
-    z-index: 2;
+    z-index: $carousel-center-layer;
     width: var(--center-card-width);
     opacity: 1;
     pointer-events: auto;
@@ -334,8 +398,15 @@
   }
 
   @media (width > calc(#{ds.breakpoint('mobile')} + #{ds.$classic-scrollbar-width})) {
-    --center-card-width: min(440px, calc(100% - 128px));
-    --side-card-width: clamp(56px, calc((100% - 456px) / 2), 104px);
+    --center-card-width: min(
+      #{$carousel-center-width-tablet},
+      calc(100% - #{$carousel-side-offset})
+    );
+    --side-card-width: clamp(
+      #{ds.$size-7},
+      calc((100% - #{$carousel-side-width-fluid-offset}) / 2),
+      #{$carousel-side-width-tablet}
+    );
     --side-half-width: calc(var(--side-card-width) / 2);
 
     padding: ds.$size-4 ds.$container-gutter-tablet ds.$size-6;
@@ -363,13 +434,27 @@
     }
 
     &__track {
-      height: 280px;
+      height: $carousel-medium-height;
     }
   }
 
   @media (width > #{ds.breakpoint('tablet')}) {
-    --center-card-width: clamp(440px, calc(200px + 31.25vw), 800px);
-    --side-card-width: clamp(104px, calc(-13.33px + 15.28vw), 280px);
+    --center-card-width: clamp(
+      #{$carousel-center-width-tablet},
+      calc(
+        #{$carousel-center-width-fluid-intercept} +
+          #{$carousel-center-width-fluid-slope}
+      ),
+      #{$carousel-center-width-desktop}
+    );
+    --side-card-width: clamp(
+      #{$carousel-side-width-tablet},
+      calc(
+        #{$carousel-side-width-fluid-intercept} +
+          #{$carousel-side-width-fluid-slope}
+      ),
+      #{$carousel-side-width-desktop}
+    );
     --side-half-width: calc(var(--side-card-width) / 2);
 
     padding: ds.$size-6 ds.$container-gutter-responsive ds.$size-10;
@@ -397,7 +482,11 @@
     }
 
     &__track {
-      height: clamp(280px, calc(213.33px + 8.68vw), 380px);
+      height: clamp(
+        $carousel-medium-height,
+        calc($carousel-height-intercept + $carousel-height-slope),
+        $carousel-desktop-height
+      );
     }
 
     &__track > .game-card[data-slot='-2'],
@@ -454,13 +543,16 @@
     left: 0;
     display: block;
     padding: ds.$size-7 ds.$size-2 ds.$size-2;
-    background: linear-gradient(transparent, rgba(ds.$color-footer, 0.96) 48%);
+    background: linear-gradient(
+      transparent,
+      rgba(ds.$color-footer, $carousel-overlay-opacity) $carousel-overlay-stop
+    );
     color: ds.$color-white;
     font-family: ds.$font-family-secondary;
   }
 
   // Container queries measure the content box; the 2px borders add 4px.
-  @container (width < 284px) {
+  @container (width < #{$card-compact-width-threshold}) {
     &__information {
       display: none;
     }
@@ -470,7 +562,7 @@
     margin: 0 0 ds.$size-1;
     overflow: hidden;
     font-size: ds.$font-size-label-large;
-    line-height: 1.2;
+    line-height: ds.$line-height-compact;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -508,7 +600,7 @@
       margin: 0;
       align-items: center;
       font-size: ds.$font-size-display-medium;
-      line-height: 1.2;
+      line-height: ds.$line-height-compact;
 
       &::before {
         width: ds.$size-1;
@@ -543,33 +635,33 @@
   }
 
   &__column--1 {
-    width: 8%;
+    width: list.nth($leaderboard-columns-desktop, 1);
   }
 
   &__column--2 {
-    width: 22%;
+    width: list.nth($leaderboard-columns-desktop, 2);
   }
 
   &__column--3 {
-    width: 17%;
+    width: list.nth($leaderboard-columns-desktop, 3);
   }
 
   &__column--4 {
-    width: 16%;
+    width: list.nth($leaderboard-columns-desktop, 4);
   }
 
   &__column--5 {
-    width: 15%;
+    width: list.nth($leaderboard-columns-desktop, 5);
   }
 
   &__column--6 {
-    width: 22%;
+    width: list.nth($leaderboard-columns-desktop, 6);
   }
 
   caption {
     position: absolute;
-    width: 1px;
-    height: 1px;
+    width: ds.$hairline-width;
+    height: ds.$hairline-width;
     overflow: hidden;
     clip: rect(0 0 0 0);
     clip-path: inset(50%);
@@ -580,7 +672,7 @@
   td {
     height: ds.$size-8;
     padding: 0 ds.$size-3;
-    border-bottom: 1px solid ds.$color-outline;
+    border-bottom: ds.$hairline-width solid ds.$color-outline;
     vertical-align: middle;
   }
 
@@ -612,7 +704,7 @@
 
   &__player {
     display: flex;
-    gap: 10px;
+    gap: $table-cell-gap;
     min-width: 0;
     align-items: center;
   }
@@ -622,7 +714,7 @@
     width: ds.$size-4;
     height: ds.$size-4;
     flex: 0 0 auto;
-    border: 1px solid ds.$color-on-primary;
+    border: ds.$hairline-width solid ds.$color-on-primary;
     border-radius: ds.$radius-full;
     place-items: center;
     font-size: ds.$font-size-label-small;
@@ -672,13 +764,13 @@
   &__favorite-tag {
     display: inline-flex;
     min-height: ds.$size-3;
-    padding: 2px 10px;
-    border: 1px solid ds.$color-on-primary;
+    padding: ds.$control-border-width $table-cell-gap;
+    border: ds.$hairline-width solid ds.$color-on-primary;
     border-radius: ds.$radius-full;
     align-items: center;
     background: ds.$color-white;
     font-size: ds.$font-size-label-small;
-    line-height: 1;
+    line-height: ds.$line-height-tightest;
     white-space: nowrap;
   }
 
@@ -698,23 +790,23 @@
     }
 
     &__column--1 {
-      width: 14%;
+      width: list.nth($leaderboard-columns-tablet, 1);
     }
 
     &__column--2 {
-      width: 29%;
+      width: list.nth($leaderboard-columns-tablet, 2);
     }
 
     &__column--3 {
-      width: 18%;
+      width: list.nth($leaderboard-columns-tablet, 3);
     }
 
     &__column--4 {
-      width: 20%;
+      width: list.nth($leaderboard-columns-tablet, 4);
     }
 
     &__column--5 {
-      width: 19%;
+      width: list.nth($leaderboard-columns-tablet, 5);
     }
 
     &__column--6 {
@@ -729,7 +821,7 @@
 
     th,
     td {
-      height: 60px;
+      height: $tablet-table-row-height;
       padding: 0 ds.$size-2;
     }
 
@@ -756,8 +848,8 @@
     }
 
     &__avatar {
-      width: 28px;
-      height: 28px;
+      width: ds.$avatar-size-medium;
+      height: ds.$avatar-size-medium;
     }
 
     &__row--rank-1 .leaderboard__rank {
@@ -785,11 +877,11 @@
     }
 
     &__column--1 {
-      width: 16%;
+      width: list.nth($leaderboard-columns-mobile, 1);
     }
 
     &__column--2 {
-      width: 38%;
+      width: list.nth($leaderboard-columns-mobile, 2);
     }
 
     &__column--3,
@@ -798,11 +890,11 @@
     }
 
     &__column--4 {
-      width: 26%;
+      width: list.nth($leaderboard-columns-mobile, 3);
     }
 
     &__column--5 {
-      width: 20%;
+      width: list.nth($leaderboard-columns-mobile, 4);
     }
 
     th:nth-child(3),
@@ -813,7 +905,7 @@
     th,
     td {
       height: ds.$size-7;
-      padding: 0 6px;
+      padding: 0 $mobile-table-gap;
       font-size: ds.$font-size-label-large;
     }
 
@@ -824,11 +916,11 @@
     &__avatar {
       width: ds.$size-3;
       height: ds.$size-3;
-      font-size: 9px;
+      font-size: $mobile-table-label-size;
     }
 
     &__player {
-      gap: 6px;
+      gap: $mobile-table-gap;
     }
 
     &__player-name[data-mobile-name] {
@@ -849,7 +941,7 @@
     }
 
     &__streak-icon {
-      margin-right: 2px;
+      margin-right: ds.$control-border-width;
       font-size: ds.$font-size-label-large;
     }
   }
@@ -878,21 +970,21 @@
     border-radius: ds.$radius-full;
     background: ds.$color-tertiary;
     content: '';
-    opacity: 0.65;
+    opacity: $developer-decoration-opacity;
   }
 
   &::before {
-    top: -160px;
-    right: 23%;
-    width: 288px;
-    height: 288px;
+    top: $decoration-top-offset;
+    right: $developer-decoration-right;
+    width: $decoration-top-size;
+    height: $decoration-top-size;
   }
 
   &::after {
-    right: -128px;
-    bottom: -128px;
-    width: 320px;
-    height: 320px;
+    right: $decoration-bottom-offset;
+    bottom: $decoration-bottom-offset;
+    width: $decoration-bottom-size;
+    height: $decoration-bottom-size;
   }
 
   &__content {
@@ -918,23 +1010,23 @@
     color: ds.$color-primary;
     font-size: ds.$font-size-label-large;
     font-weight: ds.$font-weight-bold;
-    letter-spacing: 0.08em;
+    letter-spacing: $developer-eyebrow-letter-spacing;
     text-transform: uppercase;
   }
 
   h2 {
-    max-width: 608px;
+    max-width: $developer-heading-max-width;
     font-size: ds.$font-size-display-medium;
-    line-height: 1.15;
+    line-height: ds.$line-height-heading;
   }
 
   &__description {
-    max-width: 640px;
+    max-width: $developer-copy-max-width;
     margin-top: ds.$size-3;
     color: ds.$color-on-background;
     font-size: ds.$font-size-body-medium;
     font-weight: ds.$font-weight-medium;
-    line-height: 1.5;
+    line-height: ds.$line-height-body;
   }
 
   &__button {
@@ -981,9 +1073,9 @@
   &__illustration {
     order: -1;
     position: relative;
-    flex: 0 1 680px;
+    flex: 0 1 $developer-illustration-basis;
     align-self: center;
-    aspect-ratio: 17 / 12;
+    aspect-ratio: #{$developer-illustration-ratio};
     overflow: hidden;
     border: 0;
     border-radius: ds.$radius-large;
@@ -998,11 +1090,11 @@
     object-fit: cover;
   }
 
-  @media (width <=1288px) {
-    padding: 0 16px;
+  @media (width <=#{$developer-narrow-breakpoint}) {
+    padding: 0 ds.$size-2;
 
     &__illustration {
-      flex: 1.176 1 0;
+      flex: $developer-illustration-grow 1 0;
     }
 
     &__content {
@@ -1017,14 +1109,15 @@
 
   &__window-bar {
     position: absolute;
-    top: 27%;
-    left: 17%;
-    width: 46%;
-    height: 34%;
+    top: $developer-window-top;
+    left: $developer-window-left;
+    width: $developer-window-width;
+    height: $developer-window-height;
     border: ds.$control-border-width solid ds.$color-on-primary;
     border-radius: ds.$radius-small;
     background: ds.$color-footer-raised;
-    box-shadow: 26px 20px 0 ds.$color-footer;
+    box-shadow: $developer-screen-shadow-x $developer-screen-shadow-y 0
+      ds.$color-footer;
   }
 
   &__window-code {
@@ -1033,9 +1126,9 @@
     display: flex;
     flex-direction: column;
     gap: ds.$size-2;
-    top: 31%;
-    left: 22%;
-    width: 35%;
+    top: $developer-code-top;
+    left: $developer-code-left;
+    width: $developer-code-width;
   }
 
   &__code-line {
@@ -1045,29 +1138,29 @@
     background: ds.$color-tertiary;
 
     &--long {
-      width: 84%;
+      width: $developer-code-line-long-width;
     }
 
     &--medium {
-      width: 62%;
+      width: $developer-code-line-medium-width;
     }
 
     &--short {
-      width: 42%;
+      width: $developer-code-line-short-width;
       background: ds.$color-price-free;
     }
   }
 
   &__game-shape {
     position: absolute;
-    right: 9%;
-    bottom: 12%;
-    width: 24%;
+    right: $developer-game-right;
+    bottom: $developer-game-bottom;
+    width: $developer-game-width;
     aspect-ratio: 1;
     border: ds.$dialog-border-width solid ds.$color-on-primary;
     border-radius: ds.$radius-small;
     background: ds.$color-primary;
-    box-shadow: 16px 16px 0 ds.$color-footer;
+    box-shadow: ds.$size-2 ds.$size-2 0 ds.$color-footer;
 
     &::before,
     &::after {
@@ -1115,12 +1208,12 @@
     }
 
     &__button {
-      height: 37px;
+      height: ds.$card-button-height-desktop;
       min-height: 0;
       margin-top: ds.$size-3;
       padding: 0 ds.$button-medium-padding-inline;
       font-size: ds.$font-size-label-large;
-      line-height: 17px;
+      line-height: $developer-mobile-button-line-height;
     }
 
     &__illustration {
