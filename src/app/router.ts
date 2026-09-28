@@ -1,8 +1,10 @@
 import { createHomePage } from '../pages/home/home-page';
+import { createLibraryPage } from '../pages/library/library-page';
 import { appUrl, getRoutePath } from './urls';
 
 export enum RoutePath {
   Home = '/',
+  Library = '/library',
   Privacy = '/privacy',
   Terms = '/terms',
   NotFound = '*',
@@ -40,6 +42,7 @@ function createLegalPage(title: string, content: string): HTMLElement {
 
 const routes: readonly RouteDefinition[] = [
   { path: RoutePath.Home, render: createHomePage },
+  { path: RoutePath.Library, render: createLibraryPage },
   {
     path: RoutePath.Privacy,
     render: (): HTMLElement =>
@@ -69,3 +72,13 @@ export const router: Router = {
     return route.render();
   },
 };
+
+export function renderRoute(path: string): HTMLElement {
+  const normalizedPath: string = path;
+  const route: RouteDefinition | undefined = routes.find(
+    (candidate: RouteDefinition): boolean => candidate.path === normalizedPath,
+  );
+  return (
+    route ?? { path: RoutePath.NotFound, render: createNotFoundPage }
+  ).render();
+}

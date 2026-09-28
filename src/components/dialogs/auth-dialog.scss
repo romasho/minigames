@@ -1,5 +1,13 @@
 @use '../../styles/abstracts' as ds;
 
+$visibility-button-padding: 7px;
+$visibility-strike-rotation: -45deg;
+$provider-button-gap: 10px;
+$auth-backdrop-opacity: 0.78;
+$auth-enter-scale: 0.97;
+$auth-enter-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+$auth-focus-ring-opacity: 0.18;
+
 .auth-dialog {
   position: fixed;
   inset: 0;
@@ -30,7 +38,7 @@
   }
 
   &.is-visible::backdrop {
-    background: rgba(ds.$color-footer, 0.78);
+    background: rgba(ds.$color-footer, $auth-backdrop-opacity);
     backdrop-filter: blur(ds.$size-0-5);
   }
 
@@ -42,10 +50,10 @@
     background: ds.$color-background;
     box-shadow: ds.$shadow-level-3;
     opacity: 0;
-    transform: translateY(ds.$size-2) scale(0.97);
+    transform: translateY(ds.$size-2) scale($auth-enter-scale);
     transition:
       opacity ds.$transition-medium ease,
-      transform ds.$transition-medium cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform ds.$transition-medium $auth-enter-easing;
   }
 
   &.is-visible &__surface {
@@ -98,14 +106,14 @@
   h2 {
     margin: 0 0 ds.$size-1;
     font-size: ds.$font-size-display-small;
-    line-height: 1.2;
+    line-height: ds.$line-height-compact;
   }
 
   &__description {
     margin: 0 0 ds.$size-3;
     color: ds.$color-on-background;
     font-size: ds.$font-size-body-small;
-    line-height: 1.45;
+    line-height: ds.$line-height-relaxed;
   }
 
   &__form,
@@ -124,7 +132,7 @@
     margin: 0;
     color: ds.$color-on-background;
     font-size: ds.$font-size-body-small;
-    line-height: 1.4;
+    line-height: ds.$line-height-regular;
 
     &:empty {
       display: none;
@@ -154,8 +162,8 @@
     position: absolute;
     z-index: 1;
     left: ds.$size-2;
-    width: 18px;
-    height: 18px;
+    width: ds.$icon-size-small;
+    height: ds.$icon-size-small;
     pointer-events: none;
   }
 
@@ -185,7 +193,8 @@
 
     &:focus-visible {
       border-color: ds.$color-tertiary;
-      box-shadow: 0 0 0 3px rgba(ds.$color-tertiary, 0.18);
+      box-shadow: 0 0 0 ds.$dialog-border-width
+        rgba(ds.$color-tertiary, $auth-focus-ring-opacity);
     }
   }
 
@@ -196,7 +205,7 @@
     display: grid;
     width: ds.$size-4;
     height: ds.$size-4;
-    padding: 7px;
+    padding: $visibility-button-padding;
     border: 0;
     border-radius: ds.$radius-extra-small;
     background: transparent;
@@ -204,17 +213,17 @@
     place-items: center;
 
     svg {
-      width: 18px;
-      height: 18px;
+      width: ds.$icon-size-small;
+      height: ds.$icon-size-small;
     }
 
     &.is-visible::after {
       position: absolute;
-      width: 20px;
-      height: 2px;
+      width: ds.$icon-size-medium;
+      height: ds.$control-border-width;
       background: currentColor;
       content: '';
-      transform: rotate(-45deg);
+      transform: rotate($visibility-strike-rotation);
     }
 
     &:hover {
@@ -233,7 +242,7 @@
     font-size: ds.$font-size-body-small;
     font-weight: ds.$font-weight-bold;
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-underline-offset: ds.$control-border-width;
 
     &[hidden] {
       display: none;
@@ -290,7 +299,7 @@
 
     &::before,
     &::after {
-      height: 1px;
+      height: ds.$hairline-width;
       background: ds.$color-outline-strong;
       content: '';
       flex: 1;
@@ -300,8 +309,8 @@
   &__google {
     display: flex;
     background: ds.$color-white;
-    box-shadow: 0 2px 0 ds.$color-on-primary;
-    gap: 10px;
+    box-shadow: 0 ds.$control-border-width 0 ds.$color-on-primary;
+    gap: $provider-button-gap;
     align-items: center;
     justify-content: center;
 
@@ -311,8 +320,8 @@
   }
 
   &__google-icon {
-    width: 20px;
-    height: 20px;
+    width: ds.$icon-size-medium;
+    height: ds.$icon-size-medium;
     flex: none;
   }
 
@@ -329,7 +338,7 @@
       color: ds.$color-on-primary;
       font-weight: ds.$font-weight-bold;
       text-decoration: underline;
-      text-underline-offset: 2px;
+      text-underline-offset: ds.$control-border-width;
 
       &:hover {
         color: ds.$color-tertiary;
@@ -360,11 +369,11 @@
 
     &__fields,
     &__form {
-      gap: 12px;
+      gap: ds.$size-1-5;
     }
 
     &__divider {
-      margin-block: ds.$size-2 12px;
+      margin-block: ds.$size-2 ds.$size-1-5;
     }
 
     &__alternate {

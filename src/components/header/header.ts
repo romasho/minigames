@@ -5,7 +5,7 @@ import {
   createAuthDialog,
 } from '../dialogs/auth-dialog';
 import { lockScroll, unlockScroll } from '../../utils/scroll-lock';
-import { appUrl } from '../../app/urls';
+import { appUrl, getRoutePath, libraryUrl } from '../../app/urls';
 import './header.scss';
 
 interface NavigationItem {
@@ -15,14 +15,15 @@ interface NavigationItem {
 }
 
 const navigationItems: readonly NavigationItem[] = [
-  { label: 'Home', href: appUrl('#top'), isCurrent: true },
-  { label: 'Library', href: appUrl('#new-games-title') },
-  { label: 'Tournaments', href: appUrl('#leaderboard') },
-  { label: 'Community', href: appUrl('#developers') },
+  { label: 'Home', href: appUrl() },
+  { label: 'Library', href: libraryUrl() },
+  { label: 'Tournaments', href: appUrl() },
+  { label: 'Community', href: appUrl() },
 ];
 
 export interface HeaderController {
   readonly element: HTMLElement;
+  setCurrentPage(path: string): void;
   destroy(): void;
 }
 
@@ -102,6 +103,22 @@ export function createHeader(): HeaderController {
   inner.className = 'app-header__inner';
   inner.append(createBrand());
 
+  const updateCurrentPage: (path: string) => void = (path: string): void => {
+    const currentPath: string = path === libraryUrl() ? '/library' : path;
+    header
+      .querySelectorAll<HTMLAnchorElement>(
+        ':scope .app-header__navigation a, :scope .mobile-navigation__links a',
+      )
+      .forEach((link: HTMLAnchorElement) => {
+        const isCurrent: boolean =
+          (currentPath === '/library' && link.textContent === 'Library') ||
+          (currentPath !== '/library' && link.textContent === 'Home');
+        link.classList.toggle('is-current', isCurrent);
+        link.toggleAttribute('aria-current', isCurrent);
+        if (isCurrent) link.setAttribute('aria-current', 'page');
+      });
+  };
+
   const desktopActions: HTMLDivElement = document.createElement('div');
   desktopActions.className = 'app-header__desktop-actions';
   desktopActions.append(createNavigation('app-header__navigation'));
@@ -154,6 +171,7 @@ export function createHeader(): HeaderController {
 
   const authDialog: AuthDialogController = createAuthDialog();
   header.append(inner, mobileMenu, authDialog.element);
+  updateCurrentPage(getRoutePath());
 
   const setMenuOpen: (isOpen: boolean) => void = (isOpen: boolean): void => {
     header.classList.toggle('is-menu-open', isOpen);
@@ -213,6 +231,7 @@ export function createHeader(): HeaderController {
 
   return {
     element: header,
+    setCurrentPage: updateCurrentPage,
     destroy(): void {
       unlockScroll('navigation');
       document.removeEventListener('keydown', handleEscape);

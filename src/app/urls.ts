@@ -5,6 +5,10 @@ export function appUrl(path: string | undefined = ''): string {
   return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
 }
 
+export function libraryUrl(): string {
+  return appUrl('library');
+}
+
 /**
  * Returns the application's route without the GitHub Pages repository prefix.
  */

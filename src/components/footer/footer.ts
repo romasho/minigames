@@ -4,7 +4,7 @@ import messageIconUrl from '../../assets/icons/message-square-text.svg';
 import rssIconUrl from '../../assets/icons/rss.svg';
 import rsSchoolIconUrl from '../../assets/icons/rs-school.svg';
 import shareIconUrl from '../../assets/icons/share-2.svg';
-import { appUrl } from '../../app/urls';
+import { appUrl, libraryUrl } from '../../app/urls';
 import './footer.scss';
 
 interface FooterLinkGroup {
@@ -21,19 +21,19 @@ const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
   {
     title: 'Explore',
     links: [
-      { label: 'Home', href: appUrl('#top') },
-      { label: 'Library', href: appUrl('#new-games-title') },
-      { label: 'Categories', href: appUrl('#new-games-title') },
-      { label: 'Tournaments', href: appUrl('#leaderboard') },
+      { label: 'Home', href: appUrl() },
+      { label: 'Library', href: libraryUrl() },
+      { label: 'Categories', href: appUrl() },
+      { label: 'Tournaments', href: appUrl() },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'About Us', href: appUrl('#developers') },
-      { label: 'Contact', href: 'mailto:developers@minigames.com' },
-      { label: 'Privacy Policy', href: appUrl('privacy') },
-      { label: 'Terms of Service', href: appUrl('terms') },
+      { label: 'About Us', href: appUrl() },
+      { label: 'Contact', href: appUrl() },
+      { label: 'Privacy Policy', href: appUrl() },
+      { label: 'Terms of Service', href: appUrl() },
     ],
   },
 ];

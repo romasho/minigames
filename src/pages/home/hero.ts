@@ -1,4 +1,5 @@
 import heroBackgroundUrl from '../../assets/images/hero-background.png';
+import { libraryUrl } from '../../app/urls';
 import './hero.scss';
 
 export function createHeroSection(): HTMLElement {
@@ -28,15 +29,10 @@ export function createHeroSection(): HTMLElement {
   mobileDescription.textContent =
     'Discover hundreds of curated casual mini-games right in your browser.';
   description.append(desktopDescription, mobileDescription);
-  const button = document.createElement('button');
-  button.type = 'button';
+  const button = document.createElement('a');
   button.className = 'hero__button';
+  button.href = libraryUrl();
   button.textContent = 'Browse Library';
-  button.addEventListener('click', (): void =>
-    document
-      .querySelector('#new-games-title')
-      ?.scrollIntoView({ behavior: 'smooth' }),
-  );
   content.append(title, description, button);
   hero.append(background, overlay, content);
   return hero;

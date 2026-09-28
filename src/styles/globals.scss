@@ -1,5 +1,8 @@
 @use 'abstracts' as ds;
 
+$legal-content-max-width: 720px;
+$legal-content-min-height: 60vh;
+
 @font-face {
   font-family: 'Inter';
   font-style: normal;
@@ -80,10 +83,10 @@ button:disabled {
 }
 
 .legal-page {
-  width: min(100% - 32px, 720px);
-  min-height: 60vh;
+  width: min(100% - ds.$size-4, $legal-content-max-width);
+  min-height: $legal-content-min-height;
   margin: 0 auto;
-  padding: 80px 0;
+  padding: ds.$size-10 0;
 }
 
 .legal-page a {
