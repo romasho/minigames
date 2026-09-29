@@ -92,3 +92,20 @@ button:disabled {
 .legal-page a {
   color: var(--color-primary);
 }
+
+.not-found-page {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: 60vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.not-found-page a {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.6rem;
+  background: var(--color-primary);
+  color: white;
+}

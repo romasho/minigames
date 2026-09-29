@@ -4,6 +4,7 @@ import { appUrl, getRoutePath } from './urls';
 
 export enum RoutePath {
   Home = '/',
+  HomeAlias = '/home',
   Library = '/library',
   Privacy = '/privacy',
   Terms = '/terms',
@@ -21,7 +22,15 @@ export interface Router {
 
 function createNotFoundPage(): HTMLElement {
   const page: HTMLElement = document.createElement('main');
-  page.textContent = 'Page not found';
+  page.className = 'not-found-page';
+  const heading: HTMLHeadingElement = document.createElement('h1');
+  heading.textContent = '404 — Page Not Found';
+  const message: HTMLParagraphElement = document.createElement('p');
+  message.textContent = 'We could not find that page.';
+  const link: HTMLAnchorElement = document.createElement('a');
+  link.href = appUrl();
+  link.textContent = 'Return to Home';
+  page.append(heading, message, link);
   return page;
 }
 
@@ -42,6 +51,7 @@ function createLegalPage(title: string, content: string): HTMLElement {
 
 const routes: readonly RouteDefinition[] = [
   { path: RoutePath.Home, render: createHomePage },
+  { path: RoutePath.HomeAlias, render: createHomePage },
   { path: RoutePath.Library, render: createLibraryPage },
   {
     path: RoutePath.Privacy,
