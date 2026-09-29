@@ -1,30 +1,40 @@
-import { FEATURED_GAMES, type GameCard } from './home-data';
+import {
+  gameImage,
+  getFeaturedGames,
+  type GameSummary,
+} from '../../services/api';
+import {
+  emptyState,
+  errorBanner,
+  notify,
+  skeleton,
+} from '../../components/feedback';
 import './new-games.scss';
 
-function createGameCard(game: GameCard): HTMLElement {
+function createGameCard(game: GameSummary): HTMLElement {
   const card = document.createElement('article');
   card.className = 'game-card';
   const artwork = document.createElement('div');
   artwork.className = 'game-card__artwork';
   const image = document.createElement('img');
   image.className = 'game-card__image';
-  image.src = game.imageUrl;
-  image.alt = `${game.title} game preview`;
+  image.src = gameImage(game.cardImage);
+  image.alt = `${game.name} game preview`;
   const information = document.createElement('div');
   information.className = 'game-card__information';
   const title = document.createElement('h3');
   title.className = 'game-card__title';
-  title.textContent = game.title;
+  title.textContent = game.name;
   const statistics = document.createElement('div');
   statistics.className = 'game-card__statistics';
   const likes = document.createElement('span');
   likes.className = 'game-card__likes';
-  likes.setAttribute('aria-label', `${game.likes} likes`);
-  likes.textContent = `♥ ${game.likes}`;
+  likes.setAttribute('aria-label', `${String(game.likesCount)} likes`);
+  likes.textContent = `♥ ${String(game.likesCount)}`;
   const rating = document.createElement('span');
   rating.className = 'game-card__rating';
-  rating.setAttribute('aria-label', `${game.rating} out of 5 stars`);
-  rating.textContent = `★ ${game.rating}`;
+  rating.setAttribute('aria-label', `${game.rating.toFixed(1)} out of 5 stars`);
+  rating.textContent = `★ ${game.rating.toFixed(1)}`;
   artwork.append(image);
   statistics.append(rating, likes);
   information.append(title, statistics);
@@ -32,7 +42,8 @@ function createGameCard(game: GameCard): HTMLElement {
   const details: HTMLButtonElement = document.createElement('button');
   details.type = 'button';
   details.className = 'game-card__details-trigger';
-  details.setAttribute('aria-label', `Details for ${game.title}`);
+  details.setAttribute('aria-label', `Details for ${game.name}`);
+  details.dataset.gameSlug = game.slug;
   details.addEventListener('click', (): void => {
     details.dispatchEvent(new Event('open-game-details', { bubbles: true }));
   });
@@ -70,10 +81,8 @@ export function createNewGamesSection(): HTMLElement {
   viewport.setAttribute('aria-label', 'Featured games carousel');
   const track = document.createElement('div');
   track.className = 'games-carousel__track';
-  const cards: HTMLElement[] = FEATURED_GAMES.map((game: GameCard) =>
-    createGameCard(game),
-  );
-  track.append(...cards);
+  let cards: HTMLElement[] = [];
+  track.append(skeleton('Loading featured games'));
   viewport.append(track);
   headingRow.append(title, arrows);
   section.append(headingRow, viewport);
@@ -91,6 +100,7 @@ export function createNewGamesSection(): HTMLElement {
   let isSuppressClick = false;
 
   const render = (): void => {
+    if (cards.length === 0) return;
     const visibleDistance = desktop.matches ? 2 : 1;
     for (const [index, card] of cards.entries()) {
       const half = Math.floor(cards.length / 2);
@@ -120,6 +130,7 @@ export function createNewGamesSection(): HTMLElement {
   };
 
   const schedule = (duration: number): void => {
+    if (cards.length < 2) return;
     stopTimer();
     remaining = duration;
     deadline = performance.now() + duration;
@@ -132,6 +143,7 @@ export function createNewGamesSection(): HTMLElement {
   };
 
   const move = (direction: number): void => {
+    if (cards.length < 2) return;
     center = (center + direction + cards.length) % cards.length;
     render();
     schedule(interval);
@@ -191,12 +203,38 @@ export function createNewGamesSection(): HTMLElement {
   );
 
   desktop.addEventListener('change', render);
-  render();
-  schedule(interval);
+  const controller: AbortController = new AbortController();
+  const load = async (): Promise<void> => {
+    stopTimer();
+    track.replaceChildren(skeleton('Loading featured games'));
+    try {
+      const games: GameSummary[] = await getFeaturedGames(controller.signal);
+      if (controller.signal.aborted) return;
+      cards = games.map((game: GameSummary): HTMLElement =>
+        createGameCard(game),
+      );
+      track.replaceChildren(
+        ...(cards.length > 0 ? cards : [emptyState('No featured games yet.')]),
+      );
+      render();
+      schedule(interval);
+    } catch {
+      if (controller.signal.aborted) return;
+      cards = [];
+      track.replaceChildren(
+        errorBanner('Could not load featured games.', (): void => {
+          void load();
+        }),
+      );
+      notify('Could not load featured games.');
+    }
+  };
+  void load();
   section.addEventListener(
     'page-disconnect',
     (): void => {
       stopTimer();
+      controller.abort();
       desktop.removeEventListener('change', render);
       removeEventListener('pointerup', finishPointer);
       removeEventListener('pointercancel', finishPointer);

@@ -1,4 +1,10 @@
-import { LEADERBOARD_PLAYERS, type LeaderboardPlayer } from './home-data';
+import { getLeaderboard, type LeaderboardEntry } from '../../services/api';
+import {
+  emptyState,
+  errorBanner,
+  notify,
+  skeleton,
+} from '../../components/feedback';
 import './leaderboard.scss';
 
 function createCell(
@@ -12,20 +18,18 @@ function createCell(
   cell.textContent = content;
   return cell;
 }
-function createPlayerCell(player: LeaderboardPlayer): HTMLTableCellElement {
+function createPlayerCell(player: LeaderboardEntry): HTMLTableCellElement {
   const cell = createCell('', 'Player', 'leaderboard__player');
   const avatar = document.createElement('span');
   avatar.className = `leaderboard__avatar leaderboard__avatar--${String(player.rank)}`;
-  avatar.textContent = player.initials;
+  avatar.textContent = player.playerName.slice(0, 2).toUpperCase();
   const name = document.createElement('span');
   name.className = 'leaderboard__player-name';
   name.textContent = player.playerName;
-  if (player.mobilePlayerName)
-    name.dataset.mobileName = player.mobilePlayerName;
   cell.append(avatar, name);
   return cell;
 }
-function createStreakCell(player: LeaderboardPlayer): HTMLTableCellElement {
+function createStreakCell(player: LeaderboardEntry): HTMLTableCellElement {
   const cell = createCell('', 'Streak', 'leaderboard__streak');
   const icon = document.createElement('span');
   icon.className = 'leaderboard__streak-icon';
@@ -41,7 +45,7 @@ function createStreakCell(player: LeaderboardPlayer): HTMLTableCellElement {
   return cell;
 }
 function createScoreCell(
-  player: LeaderboardPlayer,
+  player: LeaderboardEntry,
   formatter: Intl.NumberFormat,
 ): HTMLTableCellElement {
   const cell = createCell('', 'Score', 'leaderboard__score');
@@ -54,7 +58,7 @@ function createScoreCell(
   cell.append(full, compact);
   return cell;
 }
-function createFavoriteCell(player: LeaderboardPlayer): HTMLTableCellElement {
+function createFavoriteCell(player: LeaderboardEntry): HTMLTableCellElement {
   const cell = createCell('', 'Favorite Game', 'leaderboard__favorite');
   const tag = document.createElement('span');
   tag.className = 'leaderboard__favorite-tag';
@@ -118,19 +122,53 @@ export function createLeaderboardSection(): HTMLElement {
   }
   const body = table.createTBody();
   const formatter = new Intl.NumberFormat('en-US');
-  for (const player of LEADERBOARD_PLAYERS) {
-    const row = body.insertRow();
-    row.className = `leaderboard__row leaderboard__row--rank-${String(player.rank)}`;
-    row.append(
-      createCell(`#${String(player.rank)}`, 'Rank', 'leaderboard__rank'),
-      createPlayerCell(player),
-      createCell(String(player.gamesPlayed), 'Games Played'),
-      createScoreCell(player, formatter),
-      createStreakCell(player),
-      createFavoriteCell(player),
-    );
-  }
   table.append(caption, columnGroup, header, body);
   section.append(heading, table);
+  const controller: AbortController = new AbortController();
+  const load = async (): Promise<void> => {
+    table.hidden = true;
+    section.querySelector('.api-skeleton, .api-error, .api-empty')?.remove();
+    section.append(skeleton('Loading leaderboard'));
+    try {
+      const players: LeaderboardEntry[] = await getLeaderboard(
+        controller.signal,
+      );
+      if (controller.signal.aborted) return;
+      section.querySelector('.api-skeleton')?.remove();
+      body.replaceChildren();
+      for (const player of players) {
+        const row: HTMLTableRowElement = body.insertRow();
+        row.className = `leaderboard__row leaderboard__row--rank-${String(player.rank)}`;
+        row.append(
+          createCell(`#${String(player.rank)}`, 'Rank', 'leaderboard__rank'),
+          createPlayerCell(player),
+          createCell(String(player.gamesPlayed), 'Games Played'),
+          createScoreCell(player, formatter),
+          createStreakCell(player),
+          createFavoriteCell(player),
+        );
+      }
+      table.hidden = players.length === 0;
+      if (players.length === 0) section.append(emptyState('No players yet.'));
+    } catch {
+      if (controller.signal.aborted) return;
+      section.querySelector('.api-skeleton')?.replaceWith(
+        errorBanner('Could not load leaderboard.', (): void => {
+          void load();
+        }),
+      );
+      notify('Could not load leaderboard.');
+    }
+  };
+  void load();
+  section.addEventListener(
+    'page-disconnect',
+    (): void => {
+      controller.abort();
+    },
+    {
+      once: true,
+    },
+  );
   return section;
 }
