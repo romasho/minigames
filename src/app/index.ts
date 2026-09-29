@@ -18,8 +18,10 @@ export function startApp(): void {
     createFooter(),
     gameDetails.element,
   );
-  root.addEventListener('open-game-details', (): void => {
-    gameDetails.open();
+  root.addEventListener('open-game-details', (event: Event): void => {
+    const target: EventTarget | null = event.target;
+    if (target instanceof HTMLElement && target.dataset.gameSlug)
+      gameDetails.open(target.dataset.gameSlug);
   });
   root.addEventListener('click', (event: MouseEvent): void => {
     if (
