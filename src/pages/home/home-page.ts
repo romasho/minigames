@@ -12,16 +12,18 @@ export function createHomePage(): HTMLElement {
   page.className = 'home-page';
   page.id = 'top';
   const newGames = createNewGamesSection();
+  const leaderboard = createLeaderboardSection();
   page.append(
     createHeroSection(),
     newGames,
-    createLeaderboardSection(),
+    leaderboard,
     createDeveloperSection(),
   );
   page.addEventListener(
     'page-disconnect',
     (): void => {
       newGames.dispatchEvent(new Event('page-disconnect'));
+      leaderboard.dispatchEvent(new Event('page-disconnect'));
     },
     { once: true },
   );

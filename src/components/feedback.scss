@@ -1,0 +1,62 @@
+.api-skeleton,
+.api-empty,
+.api-error {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 7rem;
+  padding: 2rem;
+  border-radius: 1rem;
+  background: #f0e9f6;
+  color: #42324e;
+}
+.api-skeleton {
+  color: transparent;
+  background: linear-gradient(100deg, #ede6f3 30%, #f8f5fb 50%, #ede6f3 70%);
+  background-size: 200% 100%;
+  animation: api-shimmer 1.2s linear infinite;
+}
+@keyframes api-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+.api-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff0f0;
+}
+.api-error button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: #673c83;
+  color: white;
+}
+.api-snackbar {
+  position: fixed;
+  z-index: 1000;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 0.8rem 1rem;
+  border-radius: 0.6rem;
+  color: white;
+  background: #a72d44;
+  box-shadow: 0 0.25rem 1rem #0003;
+}
+.api-snackbar--success {
+  background: #27684d;
+}
+.api-snackbar button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
