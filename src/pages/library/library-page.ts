@@ -1,46 +1,60 @@
 import {
-  SEED_GAMES,
-  formatLikes,
-  getCardImage,
-  type SeedGame,
-} from '../../data/games';
+  emptyState,
+  errorBanner,
+  notify,
+  skeleton,
+} from '../../components/feedback';
+import { formatLikes } from '../../data/games';
+import {
+  gameImage,
+  getCategories,
+  getGames,
+  type Category,
+  type GameSummary,
+  type GamesResult,
+} from '../../services/api';
 import './library-page.scss';
 
-const games: readonly SeedGame[] = SEED_GAMES.slice(0, 6);
-
-const categories: readonly string[] = [
-  'All Games',
-  'Puzzle',
-  'Card',
-  'Match',
-  'Farm',
-  'Strategy',
-  'Arcade',
+const SORT_OPTIONS: readonly { value: string; label: string }[] = [
+  { value: 'rating-desc', label: 'Rating ↓' },
+  { value: 'rating-asc', label: 'Rating ↑' },
+  { value: 'name-asc', label: 'Name A–Z' },
+  { value: 'name-desc', label: 'Name Z–A' },
 ];
-const sortOptions: readonly string[] = [
-  'Rating ↓',
-  'Rating ↑',
-  'Name A–Z',
-  'Name Z–A',
-];
+const SORT_VALUES: ReadonlySet<string> = new Set(
+  SORT_OPTIONS.map(
+    (option: { value: string; label: string }): string => option.value,
+  ),
+);
 
-const starIcon: string = [
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">',
-  '<path d="m12 2 3.1 6.3 7 1-5 4.9 1.2 6.9L12 17.8l-6.3 3.3 1.2-6.9-5-4.9 7-1L12 2Z"/>',
-  '</svg>',
-].join('');
-const heartIcon: string = [
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
-  '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
-  '</svg>',
-].join('');
-
-function createGameCard(game: SeedGame): HTMLElement {
+interface LibraryState {
+  category: string;
+  sort: string;
+  page: number;
+}
+function readState(): LibraryState {
+  const parameters: URLSearchParams = new URLSearchParams(location.search);
+  const pageValue: number | undefined = Number(parameters.get('page'));
+  const sortValue: string | null = parameters.get('sort');
+  return {
+    category: parameters.get('category') ?? 'all',
+    sort: sortValue && SORT_VALUES.has(sortValue) ? sortValue : 'rating-desc',
+    page: Number.isSafeInteger(pageValue) && pageValue > 0 ? pageValue : 1,
+  };
+}
+function writeState(state: LibraryState): void {
+  const url: URL = new URL(location.href);
+  url.searchParams.set('category', state.category);
+  url.searchParams.set('sort', state.sort);
+  url.searchParams.set('page', String(state.page));
+  history.pushState(null, '', url);
+}
+function createGameCard(game: GameSummary): HTMLElement {
   const card: HTMLElement = document.createElement('article');
   card.className = 'library-card';
   const image: HTMLImageElement = document.createElement('img');
   image.className = 'library-card__image';
-  image.src = getCardImage(game);
+  image.src = gameImage(game.cardImage);
   image.alt = `${game.name} game screenshot`;
   image.loading = 'lazy';
   const body: HTMLDivElement = document.createElement('div');
@@ -52,8 +66,7 @@ function createGameCard(game: SeedGame): HTMLElement {
   heading.textContent = game.name;
   const badge: HTMLSpanElement = document.createElement('span');
   badge.className = 'library-card__badge';
-  badge.textContent =
-    (game.category[0]?.toUpperCase() ?? '') + game.category.slice(1);
+  badge.textContent = game.category;
   const price: HTMLSpanElement = document.createElement('span');
   price.className = 'library-card__price';
   price.textContent = game.price;
@@ -67,16 +80,22 @@ function createGameCard(game: SeedGame): HTMLElement {
   stats.className = 'library-card__stats';
   const rating: HTMLSpanElement = document.createElement('span');
   rating.setAttribute('aria-label', `${game.rating.toFixed(1)} out of 5 stars`);
-  rating.innerHTML = `${starIcon}<span>${game.rating.toFixed(1)}</span>`;
+  rating.textContent = `★ ${game.rating.toFixed(1)}`;
   const likes: HTMLSpanElement = document.createElement('span');
   likes.setAttribute('aria-label', `${String(game.likesCount)} likes`);
-  likes.innerHTML = `${heartIcon}<span>${formatLikes(game.likesCount)}</span>`;
+  likes.textContent = `♥ ${formatLikes(game.likesCount)}`;
   const button: HTMLButtonElement = document.createElement('button');
   button.type = 'button';
   button.className = 'library-button library-button--primary';
   button.textContent = 'Details';
+  button.dataset.gameSlug = game.slug;
   button.addEventListener('click', (): void => {
-    button.dispatchEvent(new Event('open-game-details', { bubbles: true }));
+    button.dispatchEvent(
+      new CustomEvent('open-game-details', {
+        bubbles: true,
+        detail: { slug: game.slug },
+      }),
+    );
   });
   stats.append(rating, likes);
   footer.append(stats, button);
@@ -91,7 +110,7 @@ export function createLibraryPage(): HTMLElement {
   const intro: HTMLElement = document.createElement('section');
   intro.className = 'library-intro';
   intro.setAttribute('aria-labelledby', 'library-title');
-  const title: HTMLElement = document.createElement('h1');
+  const title: HTMLHeadingElement = document.createElement('h1');
   title.id = 'library-title';
   title.textContent = 'Game Library';
   const subtitle: HTMLParagraphElement = document.createElement('p');
@@ -107,27 +126,7 @@ export function createLibraryPage(): HTMLElement {
   chips.className = 'library-controls__chips';
   chips.setAttribute('role', 'group');
   chips.setAttribute('aria-label', 'Filter by category');
-  for (const [index, category] of categories.entries()) {
-    const chip: HTMLButtonElement = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'library-chip';
-    chip.dataset.category = category;
-    chip.textContent = category;
-    chip.setAttribute('aria-pressed', String(index === 0));
-    if (index === 0) chip.classList.add('is-active');
-    chip.addEventListener('click', () => {
-      chips
-        .querySelectorAll<HTMLButtonElement>('.library-chip')
-        .forEach((item: HTMLButtonElement) => {
-          const isActive: boolean = item === chip;
-          item.classList.toggle('is-active', isActive);
-          item.setAttribute('aria-pressed', String(isActive));
-        });
-    });
-    chips.append(chip);
-  }
   chipViewport.append(chips);
-
   const sort: HTMLDivElement = document.createElement('div');
   sort.className = 'library-sort';
   const sortButton: HTMLButtonElement = document.createElement('button');
@@ -138,164 +137,230 @@ export function createLibraryPage(): HTMLElement {
   const sortPrefix: HTMLSpanElement = document.createElement('span');
   sortPrefix.textContent = 'Sort by: ';
   const sortValue: HTMLSpanElement = document.createElement('span');
-  sortValue.textContent = sortOptions[0] ?? 'Rating ↓';
   sortButton.append(sortPrefix, sortValue);
   const options: HTMLUListElement = document.createElement('ul');
   options.className = 'library-sort__options';
   options.setAttribute('role', 'listbox');
   options.setAttribute('aria-label', 'Sort games');
-  for (const [index, option] of sortOptions.entries()) {
-    const item: HTMLLIElement = document.createElement('li');
-    item.setAttribute('role', 'option');
-    item.setAttribute('aria-selected', String(index === 0));
-    item.tabIndex = 0;
-    item.textContent = option;
-    if (index === 0) item.classList.add('is-selected');
-    item.addEventListener('click', () => {
-      options.querySelectorAll('[role="option"]').forEach((entry: Element) => {
-        const isSelected: boolean = entry === item;
-        entry.setAttribute('aria-selected', String(isSelected));
-        entry.classList.toggle('is-selected', isSelected);
-      });
-      sortValue.textContent = option;
-      sort.classList.remove('is-open');
-      sort.dataset.open = 'false';
-      sortButton.setAttribute('aria-expanded', 'false');
-      sortButton.focus();
-    });
-    item.addEventListener('keydown', (event: KeyboardEvent) => {
-      if (!(event.key === 'Enter' || event.key === ' ')) {
-        return;
-      }
-
-      event.preventDefault();
-      item.click();
-    });
-    options.append(item);
-  }
-  sortButton.addEventListener('click', () => {
-    const isOpen: boolean = sort.dataset.open !== 'true';
-    sort.classList.toggle('is-open', isOpen);
-    sort.dataset.open = String(isOpen);
-    sortButton.setAttribute('aria-expanded', String(isOpen));
-  });
-  page.addEventListener('click', (event: Event) => {
-    if (sort.contains(event.target as Node)) {
-      return;
-    }
-
-    sort.classList.remove('is-open');
-    sort.dataset.open = 'false';
-    sortButton.setAttribute('aria-expanded', 'false');
-  });
   sort.append(sortButton, options);
   controls.append(chipViewport, sort);
 
   const grid: HTMLElement = document.createElement('section');
   grid.className = 'library-grid';
   grid.setAttribute('aria-label', 'Games');
-  const cards: HTMLElement[] = games.map((game: SeedGame): HTMLElement =>
-    createGameCard(game),
-  );
-  const compactLayout: MediaQueryList = matchMedia('(max-width: 800px)');
-  const arrangeCards: () => void = (): void => {
-    const order: readonly number[] = compactLayout.matches
-      ? [0, 2, 1, 3, 5, 4]
-      : [0, 1, 2, 3, 4, 5];
-    grid.replaceChildren(
-      ...order.map((index: number): HTMLElement => {
-        const card: HTMLElement | undefined = cards[index];
-        if (!card)
-          throw new Error(`Missing Library card at index ${String(index)}`);
-        return card;
+  const pagination: HTMLElement = document.createElement('nav');
+  pagination.className = 'library-pagination';
+  pagination.setAttribute('aria-label', 'Library pages');
+  const pageControls: HTMLDivElement = document.createElement('div');
+  pageControls.className = 'library-pagination__controls';
+  pagination.append(pageControls);
+  page.append(intro, controls, grid, pagination);
+
+  let state: LibraryState = readState();
+  let categories: Category[] = [];
+  let gameController: AbortController | undefined;
+  const categoryController: AbortController = new AbortController();
+  const media: MediaQueryList = matchMedia('(max-width: 600px)');
+  let currentMeta: GamesResult['meta'] = {
+    page: 1,
+    totalPages: 1,
+    totalItems: 0,
+  };
+
+  const renderControls: () => void = (): void => {
+    chips.replaceChildren(
+      ...categories.map((category: Category): HTMLButtonElement => {
+        const chip: HTMLButtonElement = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'library-chip';
+        chip.dataset.category = category.slug;
+        chip.textContent = category.label;
+        const isActive: boolean = state.category === category.slug;
+        chip.classList.toggle('is-active', isActive);
+        chip.setAttribute('aria-pressed', String(isActive));
+        chip.addEventListener('click', (): void => {
+          navigate({ ...state, category: category.slug, page: 1 });
+        });
+        return chip;
       }),
     );
-  };
-  compactLayout.addEventListener('change', arrangeCards);
-  arrangeCards();
-  const pagination: ReturnType<typeof createPagination> = createPagination();
-  page.addEventListener(
-    'page-disconnect',
-    (): void => {
-      pagination.destroy();
-      compactLayout.removeEventListener('change', arrangeCards);
-    },
-    { once: true },
-  );
-  page.append(intro, controls, grid, pagination.element);
-  return page;
-}
+    sortValue.textContent =
+      SORT_OPTIONS.find(
+        (option: { value: string; label: string }): boolean =>
+          option.value === state.sort,
+      )?.label ?? 'Rating ↓';
+    options.replaceChildren(
+      ...SORT_OPTIONS.map(
+        (option: { value: string; label: string }): HTMLLIElement => {
+          const item: HTMLLIElement = document.createElement('li');
+          item.setAttribute('role', 'option');
+          item.setAttribute(
+            'aria-selected',
+            String(option.value === state.sort),
+          );
+          item.classList.toggle('is-selected', option.value === state.sort);
+          item.tabIndex = 0;
+          item.textContent = option.label;
+          const select: () => void = (): void => {
+            sort.classList.remove('is-open');
+            sortButton.setAttribute('aria-expanded', 'false');
+            sortButton.focus();
+            navigate({ ...state, sort: option.value, page: 1 });
+          };
+          item.addEventListener('click', select);
+          item.addEventListener('keydown', (event: KeyboardEvent): void => {
+            if (!(event.key === 'Enter' || event.key === ' ')) {
+              return;
+            }
 
-function createPagination(): { element: HTMLElement; destroy: () => void } {
-  const nav: HTMLElement = document.createElement('nav');
-  nav.className = 'library-pagination';
-  nav.setAttribute('aria-label', 'Library pages');
-  const controls: HTMLDivElement = document.createElement('div');
-  controls.className = 'library-pagination__controls';
-  const pageCount: number = Math.ceil(SEED_GAMES.length / games.length);
-  let current: number = Math.min(1, pageCount);
-  const previous: HTMLButtonElement = document.createElement('button');
-  previous.type = 'button';
-  previous.className = 'library-pagination__arrow';
-  previous.setAttribute('aria-label', 'Previous page');
-  previous.textContent = '‹';
-  const next: HTMLButtonElement = document.createElement('button');
-  next.type = 'button';
-  next.className = 'library-pagination__arrow';
-  next.setAttribute('aria-label', 'Next page');
-  next.textContent = '›';
-  const buttons: HTMLDivElement = document.createElement('div');
-  buttons.className = 'library-pagination__pages';
-  const media: MediaQueryList = matchMedia('(max-width: 600px)');
-  const render: () => void = (): void => {
-    previous.disabled = current === 1;
-    next.disabled = current === pageCount;
-    const limit: number = media.matches ? 3 : 4;
-    let start: number = Math.max(
-      1,
-      Math.min(current - Math.floor((limit - 1) / 2), pageCount - limit + 1),
+            event.preventDefault();
+            select();
+          });
+          return item;
+        },
+      ),
     );
-    if (current === 1) start = 1;
-    buttons.replaceChildren();
-    for (let value: number = start; value < start + limit; value += 1) {
+  };
+  const renderPagination: () => void = (): void => {
+    const total: number = Math.max(1, currentMeta.totalPages);
+    const current: number = Math.max(1, currentMeta.page);
+    const visible: number = Math.min(media.matches ? 3 : 4, total);
+    const start: number = Math.max(
+      1,
+      Math.min(current - Math.floor((visible - 1) / 2), total - visible + 1),
+    );
+    const previous: HTMLButtonElement = document.createElement('button');
+    previous.type = 'button';
+    previous.className = 'library-pagination__arrow';
+    previous.setAttribute('aria-label', 'Previous page');
+    previous.textContent = '‹';
+    previous.disabled = current <= 1;
+    previous.addEventListener('click', (): void => {
+      navigate({ ...state, page: current - 1 });
+    });
+    const next: HTMLButtonElement = document.createElement('button');
+    next.type = 'button';
+    next.className = 'library-pagination__arrow';
+    next.setAttribute('aria-label', 'Next page');
+    next.textContent = '›';
+    next.disabled = current >= total;
+    next.addEventListener('click', (): void => {
+      navigate({ ...state, page: current + 1 });
+    });
+    const buttons: HTMLDivElement = document.createElement('div');
+    buttons.className = 'library-pagination__pages';
+    for (let value: number = start; value < start + visible; value += 1) {
       const button: HTMLButtonElement = document.createElement('button');
       button.type = 'button';
       button.className = 'library-pagination__page';
       button.textContent = String(value);
       button.setAttribute('aria-label', `Page ${String(value)}`);
-      button.setAttribute('aria-current', String(value === current));
       button.classList.toggle('is-active', value === current);
-      button.addEventListener('click', () => {
-        current = value;
-        render();
+      if (value === current) button.setAttribute('aria-current', 'page');
+      button.addEventListener('click', (): void => {
+        navigate({ ...state, page: value });
       });
       buttons.append(button);
     }
+    pageControls.replaceChildren(previous, buttons, next);
   };
-  previous.addEventListener('click', () => {
-    if (!(current > 1)) {
+  const loadGames: () => Promise<void> = async (): Promise<void> => {
+    gameController?.abort();
+    const controller: AbortController = new AbortController();
+    gameController = controller;
+    grid.replaceChildren(skeleton('Loading games'));
+    try {
+      const result: GamesResult = await getGames(
+        state.category,
+        state.sort,
+        state.page,
+        controller.signal,
+      );
+      if (controller.signal.aborted) return;
+      currentMeta = result.meta;
+      grid.replaceChildren(
+        ...(result.data.length > 0
+          ? result.data.map((game: GameSummary): HTMLElement =>
+              createGameCard(game),
+            )
+          : [emptyState('Data Not Found')]),
+      );
+      renderPagination();
+    } catch {
+      if (controller.signal.aborted) return;
+      grid.replaceChildren(
+        errorBanner('Could not load games.', (): void => {
+          void loadGames();
+        }),
+      );
+      notify('Could not load games.');
+    }
+  };
+  const navigate: (next: LibraryState) => void = (next: LibraryState): void => {
+    if (
+      next.category === state.category &&
+      next.sort === state.sort &&
+      next.page === state.page
+    )
+      return;
+    state = next;
+    writeState(state);
+    renderControls();
+    void loadGames();
+  };
+  const syncFromUrl: () => void = (): void => {
+    state = readState();
+    renderControls();
+    void loadGames();
+  };
+  const loadCategories: () => Promise<void> = async (): Promise<void> => {
+    chips.replaceChildren(skeleton('Loading categories'));
+    try {
+      categories = await getCategories(categoryController.signal);
+      if (categoryController.signal.aborted) return;
+      if (!new URLSearchParams(location.search).has('category'))
+        state.category =
+          categories.find((item: Category): boolean => item.isDefault)?.slug ??
+          'all';
+      renderControls();
+    } catch {
+      if (categoryController.signal.aborted) return;
+      chips.replaceChildren(
+        errorBanner('Could not load categories.', (): void => {
+          void loadCategories();
+        }),
+      );
+      notify('Could not load categories.');
+    }
+  };
+  sortButton.addEventListener('click', (): void => {
+    const isOpen: boolean | undefined = !sort.classList.contains('is-open');
+    sort.classList.toggle('is-open', isOpen);
+    sortButton.setAttribute('aria-expanded', String(isOpen));
+  });
+  page.addEventListener('click', (event: MouseEvent): void => {
+    if (!(event.target instanceof Node) || sort.contains(event.target)) {
       return;
     }
 
-    current -= 1;
-    render();
+    sort.classList.remove('is-open');
+    sortButton.setAttribute('aria-expanded', 'false');
   });
-  next.addEventListener('click', () => {
-    if (!(current < pageCount)) {
-      return;
-    }
-
-    current += 1;
-    render();
-  });
-  media.addEventListener('change', render);
-  controls.append(previous, buttons, next);
-  nav.append(controls);
-  render();
-  return {
-    element: nav,
-    destroy: (): void => {
-      media.removeEventListener('change', render);
+  addEventListener('popstate', syncFromUrl);
+  media.addEventListener('change', renderPagination);
+  page.addEventListener(
+    'page-disconnect',
+    (): void => {
+      gameController?.abort();
+      categoryController.abort();
+      removeEventListener('popstate', syncFromUrl);
+      media.removeEventListener('change', renderPagination);
     },
-  };
+    { once: true },
+  );
+  renderControls();
+  renderPagination();
+  void loadCategories();
+  void loadGames();
+  return page;
 }
