@@ -174,6 +174,9 @@ export function createAuthDialog(): AuthDialogController {
 
   const switchMode: (mode: AuthMode) => void = (mode: AuthMode): void => {
     if (mode === activeMode) return;
+    dialog.dispatchEvent(
+      new CustomEvent('auth-mode-change', { bubbles: true, detail: { mode } }),
+    );
     const version: number = ++switchVersion;
     for (const animation of panel.getAnimations()) animation.cancel();
     if (shouldReduceMotion()) {

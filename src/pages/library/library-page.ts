@@ -346,14 +346,13 @@ export function createLibraryPage(): HTMLElement {
     sort.classList.remove('is-open');
     sortButton.setAttribute('aria-expanded', 'false');
   });
-  addEventListener('popstate', syncFromUrl);
+  page.addEventListener('route-change', syncFromUrl);
   media.addEventListener('change', renderPagination);
   page.addEventListener(
     'page-disconnect',
     (): void => {
       gameController?.abort();
       categoryController.abort();
-      removeEventListener('popstate', syncFromUrl);
       media.removeEventListener('change', renderPagination);
     },
     { once: true },

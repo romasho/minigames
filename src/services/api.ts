@@ -1,6 +1,10 @@
 const API_BASE: URL = new URL(
   'https://faxb76kxra.execute-api.eu-central-1.amazonaws.com',
 );
+const GAME_IMAGES: Record<string, string> = import.meta.glob(
+  '../assets/games/*.{jpg,png,webp}',
+  { eager: true, query: '?url', import: 'default' },
+);
 
 export class ApiError extends Error {
   constructor(readonly status: number) {
@@ -121,7 +125,11 @@ async function get(path: string, signal?: AbortSignal): Promise<unknown> {
   return response.json() as Promise<unknown>;
 }
 export function gameImage(path: string): string {
-  return new URL(path, API_BASE).href;
+  const filename: string | undefined = path.split('/').at(-1);
+  const localImage: string | undefined = filename
+    ? GAME_IMAGES[`../assets/games/${filename}`]
+    : undefined;
+  return localImage ?? new URL(path, API_BASE).href;
 }
 export async function getFeaturedGames(
   signal?: AbortSignal,

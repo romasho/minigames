@@ -168,6 +168,8 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
       if (signal.aborted) return;
       if (error instanceof ApiError && error.status === 404) {
         detailsSlot.replaceChildren(emptyState('Game Not Found'));
+        comments.replaceChildren();
+        controller?.abort();
         return;
       }
       detailsSlot.replaceChildren(

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Opening MiniGames</title>
+    <script>
+      sessionStorage.setItem(
+        'minigames-deep-link',
+        location.pathname + location.search + location.hash,
+      );
+      location.replace('/minigames/');
+    </script>
+  </head>
+  <body></body>
+</html>
