@@ -17,6 +17,16 @@ export interface GameDetailsDialogController {
   close(): void;
 }
 
+const icons: Record<'heart' | 'star' | 'trophy' | 'close', string> = {
+  heart:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3.1 6.3 7 1-5 4.9 1.2 6.9L12 17.8l-6.3 3.3 1.2-6.9-5-4.9 7-1L12 2Z"/></svg>',
+  trophy:
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h10v3h4v3c0 3.1-2 5.3-5.1 5.6A6 6 0 0 1 13 16v3h4v3H7v-3h4v-3a6 6 0 0 1-2.9-2.4C5 13.3 3 11.1 3 8V5h4V2Zm0 5H5v1c0 1.5.7 2.7 2.1 3.2A6 6 0 0 1 7 10V7Zm10 0v3c0 .4 0 .8-.1 1.2C18.3 10.7 19 9.5 19 8V7h-2Z"/></svg>',
+  close:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg>',
+};
+
 function text(tag: 'h2' | 'h3' | 'p' | 'span', value: string): HTMLElement {
   const element: HTMLElement = document.createElement(tag);
   element.textContent = value;
@@ -44,7 +54,7 @@ export function relativeTime(date: string, now: number = Date.now()): string {
   return `${String(years)} ${years === 1 ? 'year' : 'years'} ago`;
 }
 
-function renderDetails(game: GameDetails): HTMLElement {
+function renderDetails(game: GameDetails, comments: HTMLElement): HTMLElement {
   const wrapper: HTMLElement = document.createElement('div');
   const image: HTMLImageElement = document.createElement('img');
   image.className = 'game-details__image';
@@ -56,10 +66,14 @@ function renderDetails(game: GameDetails): HTMLElement {
   heading.className = 'game-details__heading';
   const title: HTMLElement = text('h2', game.name);
   title.id = 'game-details-title';
-  const rating: HTMLElement = text('span', `★ ${game.rating.toFixed(1)}`);
+  const rating: HTMLElement = text('span', game.rating.toFixed(1));
   rating.className = 'game-details__rating';
-  const likes: HTMLElement = text('span', `♥ ${formatLikes(game.likesCount)}`);
+  rating.insertAdjacentHTML('afterbegin', icons.star);
+  rating.setAttribute('aria-label', `${game.rating.toFixed(1)} out of 5 stars`);
+  const likes: HTMLElement = text('span', formatLikes(game.likesCount));
   likes.className = 'game-details__likes';
+  likes.insertAdjacentHTML('afterbegin', icons.heart);
+  likes.setAttribute('aria-label', `${String(game.likesCount)} likes`);
   heading.append(title, rating, likes);
   const description: HTMLElement = text('p', game.fullDescription);
   description.className = 'game-details__description';
@@ -85,16 +99,21 @@ function renderDetails(game: GameDetails): HTMLElement {
   const favorite: HTMLButtonElement = document.createElement('button');
   favorite.type = 'button';
   favorite.className = 'game-details__button game-details__favorite';
-  favorite.textContent = 'Add to Favorites';
+  favorite.innerHTML = `${icons.heart}<span>Add to Favorites</span>`;
   favorite.disabled = true;
   favorite.title = 'Sign in to save favorites';
   actions.append(play, favorite);
   const records: HTMLElement = document.createElement('section');
   records.className = 'game-details__records';
-  records.append(text('h3', 'Top Records'));
+  const recordsTitle: HTMLElement = text('h3', 'Top Records');
+  recordsTitle.insertAdjacentHTML('afterbegin', icons.trophy);
+  records.append(recordsTitle);
   const list: HTMLOListElement = document.createElement('ol');
-  for (const record of game.topRecords) {
+  for (const [index, record] of game.topRecords.entries()) {
     const item: HTMLLIElement = document.createElement('li');
+    const medal: HTMLElement = text('span', ['🥇', '🥈', '🥉'][index] ?? '');
+    medal.className = 'game-details__medal';
+    medal.setAttribute('aria-label', `Rank ${String(index + 1)}`);
     const player: HTMLElement = text('span', record.playerName);
     player.className = 'game-details__player';
     const score: HTMLElement = text(
@@ -105,11 +124,11 @@ function renderDetails(game: GameDetails): HTMLElement {
     const date: HTMLTimeElement = document.createElement('time');
     date.dateTime = record.achievedAt;
     date.textContent = relativeTime(record.achievedAt);
-    item.append(player, score, date);
+    item.append(medal, player, score, date);
     list.append(item);
   }
   records.append(list);
-  content.append(heading, description, specs, actions, records);
+  content.append(heading, description, specs, actions, records, comments);
   wrapper.append(image, content);
   return wrapper;
 }
@@ -128,8 +147,9 @@ function renderComment(comment: GameComment): HTMLElement {
   date.textContent = relativeTime(comment.createdAt);
   heading.append(avatar, author, date);
   const body: HTMLElement = text('p', comment.text);
-  const likes: HTMLElement = text('span', `♥ ${String(comment.likesCount)}`);
+  const likes: HTMLElement = text('span', String(comment.likesCount));
   likes.className = 'game-details__comment-like';
+  likes.insertAdjacentHTML('afterbegin', icons.heart);
   article.append(heading, body, likes);
   return article;
 }
@@ -142,14 +162,14 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
   closeButton.type = 'button';
   closeButton.className = 'game-details__close';
   closeButton.setAttribute('aria-label', 'Close game details');
-  closeButton.textContent = '×';
+  closeButton.innerHTML = icons.close;
   closeButton.addEventListener('click', (): void => {
     dialog.close();
   });
   const detailsSlot: HTMLDivElement = document.createElement('div');
   const comments: HTMLElement = document.createElement('section');
   comments.className = 'game-details__comments';
-  dialog.append(closeButton, detailsSlot, comments);
+  dialog.append(closeButton, detailsSlot);
   let controller: AbortController | undefined;
   let activeSlug: string | undefined;
   const loadDetails: (
@@ -163,7 +183,7 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     try {
       const game: GameDetails = await getGameDetails(slug, signal);
       if (signal.aborted) return;
-      detailsSlot.replaceChildren(renderDetails(game));
+      detailsSlot.replaceChildren(renderDetails(game, comments));
     } catch (error: unknown) {
       if (signal.aborted) return;
       if (error instanceof ApiError && error.status === 404) {
