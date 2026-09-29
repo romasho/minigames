@@ -2,6 +2,12 @@ const API_BASE: URL = new URL(
   'https://faxb76kxra.execute-api.eu-central-1.amazonaws.com',
 );
 
+export class ApiError extends Error {
+  constructor(readonly status: number) {
+    super(`Request failed (${String(status)})`);
+  }
+}
+
 export interface GameSummary {
   slug: string;
   name: string;
@@ -111,8 +117,7 @@ function isComment(value: unknown): value is GameComment {
 }
 async function get(path: string, signal?: AbortSignal): Promise<unknown> {
   const response: Response = await fetch(`${API_BASE}${path}`, { signal });
-  if (!response.ok)
-    throw new Error(`Request failed (${String(response.status)})`);
+  if (!response.ok) throw new ApiError(response.status);
   return response.json() as Promise<unknown>;
 }
 export function gameImage(path: string): string {
