@@ -35,10 +35,10 @@ export function relativeTime(date: string, now: number = Date.now()): string {
   const days: number = Math.floor(hours / 24);
   if (days < 7) return `${String(days)} ${days === 1 ? 'day' : 'days'} ago`;
   const weeks: number = Math.floor(days / 7);
-  if (weeks < 4)
+  if (days < 28)
     return `${String(weeks)} ${weeks === 1 ? 'week' : 'weeks'} ago`;
-  const months: number = Math.floor(days / 30);
-  if (months < 12)
+  const months: number = Math.min(11, Math.max(1, Math.floor(days / 30)));
+  if (days < 365)
     return `${String(months)} ${months === 1 ? 'month' : 'months'} ago`;
   const years: number = Math.floor(days / 365);
   return `${String(years)} ${years === 1 ? 'year' : 'years'} ago`;
