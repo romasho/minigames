@@ -8,6 +8,7 @@ import {
   errorBanner,
   notify,
   skeleton,
+  withSkeleton,
 } from '../../components/feedback';
 import './new-games.scss';
 
@@ -82,7 +83,7 @@ export function createNewGamesSection(): HTMLElement {
   const track = document.createElement('div');
   track.className = 'games-carousel__track';
   let cards: HTMLElement[] = [];
-  track.append(skeleton('Loading featured games'));
+  track.append(skeleton('Loading featured games', 'carousel'));
   viewport.append(track);
   headingRow.append(title, arrows);
   section.append(headingRow, viewport);
@@ -206,9 +207,13 @@ export function createNewGamesSection(): HTMLElement {
   const controller: AbortController = new AbortController();
   const load = async (): Promise<void> => {
     stopTimer();
-    track.replaceChildren(skeleton('Loading featured games'));
+    const startedAt: number = performance.now();
+    track.replaceChildren(skeleton('Loading featured games', 'carousel'));
     try {
-      const games: GameSummary[] = await getFeaturedGames(controller.signal);
+      const games: GameSummary[] = await withSkeleton(
+        getFeaturedGames(controller.signal),
+        startedAt,
+      );
       if (controller.signal.aborted) return;
       cards = games.map((game: GameSummary): HTMLElement =>
         createGameCard(game),

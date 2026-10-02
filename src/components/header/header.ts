@@ -196,20 +196,6 @@ export function createHeader(): HeaderController {
   authDialog.element.addEventListener('close', (): void => {
     header.dispatchEvent(new CustomEvent('auth-closed', { bubbles: true }));
   });
-  authDialog.element.addEventListener(
-    'auth-mode-change',
-    (event: Event): void => {
-      if (!(event instanceof CustomEvent)) return;
-      const detail: unknown = event.detail;
-      header.dispatchEvent(
-        new CustomEvent('auth-mode-change', {
-          bubbles: true,
-          detail,
-        }),
-      );
-    },
-  );
-
   menuToggle.addEventListener('click', (): void => {
     setMenuOpen(!header.classList.contains('is-menu-open'));
   });

@@ -1,12 +1,64 @@
 import './feedback.scss';
 
-export function skeleton(label: string): HTMLElement {
+export type SkeletonKind =
+  | 'carousel'
+  | 'leaderboard'
+  | 'library'
+  | 'categories'
+  | 'details'
+  | 'comments';
+
+const SKELETON_ITEMS: Record<SkeletonKind, number> = {
+  carousel: 3,
+  leaderboard: 5,
+  library: 6,
+  categories: 6,
+  details: 1,
+  comments: 3,
+};
+enum SkeletonDuration {
+  Minimum = 450,
+}
+
+export function skeleton(label: string, kind: SkeletonKind): HTMLElement {
   const placeholder: HTMLElement = document.createElement('div');
-  placeholder.className = 'api-skeleton';
+  placeholder.className = `api-skeleton api-skeleton--${kind}`;
   placeholder.setAttribute('role', 'status');
   placeholder.setAttribute('aria-label', label);
-  placeholder.textContent = label;
+  placeholder.append(
+    ...Array.from({ length: SKELETON_ITEMS[kind] }, (): HTMLElement => {
+      const item: HTMLElement = document.createElement('div');
+      item.className = 'api-skeleton__item';
+      item.setAttribute('aria-hidden', 'true');
+      const media: HTMLElement = document.createElement('span');
+      media.className = 'api-skeleton__media';
+      const lines: HTMLElement = document.createElement('span');
+      lines.className = 'api-skeleton__lines';
+      item.append(media, lines);
+      return item;
+    }),
+  );
   return placeholder;
+}
+
+async function waitForSkeleton(startedAt: number): Promise<void> {
+  const remaining: number =
+    SkeletonDuration.Minimum - (performance.now() - startedAt);
+  if (remaining <= 0) return;
+  await new Promise<void>((resolve: () => void): void => {
+    setTimeout(resolve, remaining);
+  });
+}
+
+export async function withSkeleton<T>(
+  request: Promise<T>,
+  startedAt: number,
+): Promise<T> {
+  try {
+    return await request;
+  } finally {
+    await waitForSkeleton(startedAt);
+  }
 }
 
 export function emptyState(message: string): HTMLElement {
@@ -34,6 +86,7 @@ const noticeState: { timer?: ReturnType<typeof setTimeout> } = {};
 export function notify(
   message: string,
   variant: 'success' | 'error' = 'error',
+  container: HTMLElement = document.body,
 ): void {
   const old: HTMLElement | null = document.querySelector('.api-snackbar');
   old?.remove();
@@ -50,7 +103,7 @@ export function notify(
     notice.remove();
   });
   notice.append(close);
-  document.body.append(notice);
+  container.append(notice);
   noticeState.timer = setTimeout((): void => {
     notice.remove();
   }, 4500);

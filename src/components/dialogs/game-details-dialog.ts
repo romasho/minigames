@@ -1,4 +1,10 @@
-import { emptyState, errorBanner, notify, skeleton } from '../feedback';
+import {
+  emptyState,
+  errorBanner,
+  notify,
+  skeleton,
+  withSkeleton,
+} from '../feedback';
 import { formatLikes } from '../../data/games';
 import {
   ApiError,
@@ -127,7 +133,9 @@ function renderDetails(game: GameDetails, comments: HTMLElement): HTMLElement {
     item.append(medal, player, score, date);
     list.append(item);
   }
-  records.append(list);
+  records.append(
+    game.topRecords.length > 0 ? list : emptyState('No records yet.'),
+  );
   content.append(heading, description, specs, actions, records, comments);
   wrapper.append(image, content);
   return wrapper;
@@ -167,6 +175,7 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     dialog.close();
   });
   const detailsSlot: HTMLDivElement = document.createElement('div');
+  detailsSlot.className = 'game-details__details-slot';
   const comments: HTMLElement = document.createElement('section');
   comments.className = 'game-details__comments';
   dialog.append(closeButton, detailsSlot);
@@ -179,11 +188,16 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     slug: string,
     signal: AbortSignal,
   ): Promise<void> => {
-    detailsSlot.replaceChildren(skeleton('Loading game details'));
+    const startedAt: number = performance.now();
+    detailsSlot.replaceChildren(skeleton('Loading game details', 'details'));
     try {
-      const game: GameDetails = await getGameDetails(slug, signal);
+      const game: GameDetails = await withSkeleton(
+        getGameDetails(slug, signal),
+        startedAt,
+      );
       if (signal.aborted) return;
       detailsSlot.replaceChildren(renderDetails(game, comments));
+      void loadComments(slug, signal);
     } catch (error: unknown) {
       if (signal.aborted) return;
       if (error instanceof ApiError && error.status === 404) {
@@ -197,7 +211,7 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
           void loadDetails(slug, signal);
         }),
       );
-      notify('Could not load game details.');
+      notify('Could not load game details.', 'error', dialog);
     }
   };
   const loadComments: (
@@ -207,9 +221,13 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     slug: string,
     signal: AbortSignal,
   ): Promise<void> => {
-    comments.replaceChildren(skeleton('Loading comments'));
+    const startedAt: number = performance.now();
+    comments.replaceChildren(skeleton('Loading comments', 'comments'));
     try {
-      const result: CommentsResult = await getComments(slug, signal);
+      const result: CommentsResult = await withSkeleton(
+        getComments(slug, signal),
+        startedAt,
+      );
       if (signal.aborted) return;
       const heading: HTMLElement = text(
         'h3',
@@ -230,7 +248,7 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
           void loadComments(slug, signal);
         }),
       );
-      notify('Could not load comments.');
+      notify('Could not load comments.', 'error', dialog);
     }
   };
   dialog.addEventListener('click', (event: MouseEvent): void => {
@@ -249,7 +267,6 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
       activeSlug = slug;
       if (!dialog.open) dialog.showModal();
       void loadDetails(slug, controller.signal);
-      void loadComments(slug, controller.signal);
     },
     close(): void {
       if (dialog.open) dialog.close();

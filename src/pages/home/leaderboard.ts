@@ -4,6 +4,7 @@ import {
   errorBanner,
   notify,
   skeleton,
+  withSkeleton,
 } from '../../components/feedback';
 import './leaderboard.scss';
 
@@ -128,10 +129,12 @@ export function createLeaderboardSection(): HTMLElement {
   const load = async (): Promise<void> => {
     table.hidden = true;
     section.querySelector('.api-skeleton, .api-error, .api-empty')?.remove();
-    section.append(skeleton('Loading leaderboard'));
+    const startedAt: number = performance.now();
+    section.append(skeleton('Loading leaderboard', 'leaderboard'));
     try {
-      const players: LeaderboardEntry[] = await getLeaderboard(
-        controller.signal,
+      const players: LeaderboardEntry[] = await withSkeleton(
+        getLeaderboard(controller.signal),
+        startedAt,
       );
       if (controller.signal.aborted) return;
       section.querySelector('.api-skeleton')?.remove();

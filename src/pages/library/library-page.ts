@@ -3,6 +3,7 @@ import {
   errorBanner,
   notify,
   skeleton,
+  withSkeleton,
 } from '../../components/feedback';
 import { formatLikes } from '../../data/games';
 import {
@@ -32,12 +33,12 @@ interface LibraryState {
   sort: string;
   page: number;
 }
-function readState(): LibraryState {
+function readState(defaultCategory: string): LibraryState {
   const parameters: URLSearchParams = new URLSearchParams(location.search);
   const pageValue: number | undefined = Number(parameters.get('page'));
   const sortValue: string | null = parameters.get('sort');
   return {
-    category: parameters.get('category') ?? 'all',
+    category: parameters.get('category') ?? defaultCategory,
     sort: sortValue && SORT_VALUES.has(sortValue) ? sortValue : 'rating-desc',
     page: Number.isSafeInteger(pageValue) && pageValue > 0 ? pageValue : 1,
   };
@@ -156,8 +157,11 @@ export function createLibraryPage(): HTMLElement {
   pagination.append(pageControls);
   page.append(intro, controls, grid, pagination);
 
-  let state: LibraryState = readState();
+  let defaultCategory: string;
+  defaultCategory = 'all';
+  let state: LibraryState = readState(defaultCategory);
   let categories: Category[] = [];
+  let categoryLoadState: 'loading' | 'error' | 'ready' = 'loading';
   let gameController: AbortController | undefined;
   const categoryController: AbortController = new AbortController();
   const media: MediaQueryList = matchMedia('(max-width: 600px)');
@@ -168,22 +172,33 @@ export function createLibraryPage(): HTMLElement {
   };
 
   const renderControls: () => void = (): void => {
-    chips.replaceChildren(
-      ...categories.map((category: Category): HTMLButtonElement => {
-        const chip: HTMLButtonElement = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'library-chip';
-        chip.dataset.category = category.slug;
-        chip.textContent = category.label;
-        const isActive: boolean = state.category === category.slug;
-        chip.classList.toggle('is-active', isActive);
-        chip.setAttribute('aria-pressed', String(isActive));
-        chip.addEventListener('click', (): void => {
-          navigate({ ...state, category: category.slug, page: 1 });
-        });
-        return chip;
-      }),
-    );
+    const categoryContent: HTMLElement[] =
+      categoryLoadState === 'loading'
+        ? [skeleton('Loading categories', 'categories')]
+        : categoryLoadState === 'error'
+          ? [
+              errorBanner('Could not load categories.', (): void => {
+                void loadCategories();
+              }),
+            ]
+          : categories.length === 0
+            ? [emptyState('No categories available.')]
+            : categories.map((category: Category): HTMLButtonElement => {
+                const chip: HTMLButtonElement =
+                  document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'library-chip';
+                chip.dataset.category = category.slug;
+                chip.textContent = category.label;
+                const isActive: boolean = state.category === category.slug;
+                chip.classList.toggle('is-active', isActive);
+                chip.setAttribute('aria-pressed', String(isActive));
+                chip.addEventListener('click', (): void => {
+                  navigate({ ...state, category: category.slug, page: 1 });
+                });
+                return chip;
+              });
+    chips.replaceChildren(...categoryContent);
     sortValue.textContent =
       SORT_OPTIONS.find(
         (option: { value: string; label: string }): boolean =>
@@ -268,16 +283,24 @@ export function createLibraryPage(): HTMLElement {
     gameController?.abort();
     const controller: AbortController = new AbortController();
     gameController = controller;
-    grid.replaceChildren(skeleton('Loading games'));
+    const startedAt: number = performance.now();
+    grid.replaceChildren(skeleton('Loading games', 'library'));
     try {
-      const result: GamesResult = await getGames(
-        state.category,
-        state.sort,
-        state.page,
-        controller.signal,
+      const result: GamesResult = await withSkeleton(
+        getGames(state.category, state.sort, state.page, controller.signal),
+        startedAt,
       );
       if (controller.signal.aborted) return;
-      currentMeta = result.meta;
+      if (result.data.length === 0 && state.page !== 1) {
+        state = { ...state, page: 1 };
+        const url: URL = new URL(location.href);
+        url.searchParams.set('page', '1');
+        history.replaceState(null, '', url);
+        void loadGames();
+        return;
+      }
+      currentMeta =
+        result.data.length === 0 ? { ...result.meta, page: 1 } : result.meta;
       grid.replaceChildren(
         ...(result.data.length > 0
           ? result.data.map((game: GameSummary): HTMLElement =>
@@ -309,27 +332,37 @@ export function createLibraryPage(): HTMLElement {
     void loadGames();
   };
   const syncFromUrl: () => void = (): void => {
-    state = readState();
+    state = readState(defaultCategory);
     renderControls();
     void loadGames();
   };
   const loadCategories: () => Promise<void> = async (): Promise<void> => {
-    chips.replaceChildren(skeleton('Loading categories'));
+    categoryLoadState = 'loading';
+    renderControls();
+    const startedAt: number = performance.now();
     try {
-      categories = await getCategories(categoryController.signal);
+      categories = await withSkeleton(
+        getCategories(categoryController.signal),
+        startedAt,
+      );
       if (categoryController.signal.aborted) return;
-      if (!new URLSearchParams(location.search).has('category'))
-        state.category =
-          categories.find((item: Category): boolean => item.isDefault)?.slug ??
-          'all';
+      categoryLoadState = 'ready';
+      defaultCategory =
+        categories.find((item: Category): boolean => item.isDefault)?.slug ??
+        'all';
+      const nextCategory: string = new URLSearchParams(location.search).has(
+        'category',
+      )
+        ? state.category
+        : defaultCategory;
+      const isCategoryChanged: boolean = state.category !== nextCategory;
+      state.category = nextCategory;
       renderControls();
+      if (isCategoryChanged) void loadGames();
     } catch {
       if (categoryController.signal.aborted) return;
-      chips.replaceChildren(
-        errorBanner('Could not load categories.', (): void => {
-          void loadCategories();
-        }),
-      );
+      categoryLoadState = 'error';
+      renderControls();
       notify('Could not load categories.');
     }
   };

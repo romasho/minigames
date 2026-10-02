@@ -81,6 +81,7 @@ $mobile-category-widths: (
 }
 
 .library-controls__chips-viewport {
+  flex: 1;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -93,6 +94,10 @@ $mobile-category-widths: (
   width: max-content;
   gap: ds.$size-2;
   white-space: nowrap;
+}
+.library-controls__chips:has(> .api-error),
+.library-controls__chips:has(> .api-empty) {
+  width: 100%;
 }
 
 .library-chip {
@@ -187,6 +192,10 @@ $mobile-category-widths: (
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ds.$size-3;
+}
+.library-grid > .api-error,
+.library-grid > .api-empty {
+  grid-column: 1 / -1;
 }
 .library-card {
   display: flex;
@@ -404,7 +413,7 @@ $mobile-category-widths: (
   }
   .library-controls__chips-viewport {
     width: 100%;
-    flex: 0 0 auto;
+    flex: none;
   }
   .library-controls__chips {
     gap: ds.$size-1;
