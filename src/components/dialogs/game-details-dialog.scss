@@ -69,6 +69,11 @@ $details-narrow-label-size: 11px;
     height: ds.$icon-size-small;
   }
 
+  &__details-slot > .api-error {
+    min-height: 400px;
+    padding: ds.$size-7 ds.$size-3 ds.$size-3;
+  }
+
   &__image {
     display: block;
     width: 100%;

@@ -24,6 +24,7 @@ const navigationItems: readonly NavigationItem[] = [
 export interface HeaderController {
   readonly element: HTMLElement;
   setCurrentPage(path: string): void;
+  setAuthMode(mode: AuthMode | null): void;
   destroy(): void;
 }
 
@@ -112,7 +113,8 @@ export function createHeader(): HeaderController {
       .forEach((link: HTMLAnchorElement) => {
         const isCurrent: boolean =
           (currentPath === '/library' && link.textContent === 'Library') ||
-          (currentPath !== '/library' && link.textContent === 'Home');
+          ((currentPath === '/' || currentPath === '/home') &&
+            link.textContent === 'Home');
         link.classList.toggle('is-current', isCurrent);
         link.toggleAttribute('aria-current', isCurrent);
         if (isCurrent) link.setAttribute('aria-current', 'page');
@@ -187,9 +189,13 @@ export function createHeader(): HeaderController {
 
   const openAuth: (mode: AuthMode) => void = (mode: AuthMode): void => {
     setMenuOpen(false);
-    authDialog.open(mode);
+    header.dispatchEvent(
+      new CustomEvent('request-auth', { bubbles: true, detail: { mode } }),
+    );
   };
-
+  authDialog.element.addEventListener('close', (): void => {
+    header.dispatchEvent(new CustomEvent('auth-closed', { bubbles: true }));
+  });
   menuToggle.addEventListener('click', (): void => {
     setMenuOpen(!header.classList.contains('is-menu-open'));
   });
@@ -232,6 +238,10 @@ export function createHeader(): HeaderController {
   return {
     element: header,
     setCurrentPage: updateCurrentPage,
+    setAuthMode(mode: AuthMode | null): void {
+      if (mode) authDialog.open(mode);
+      else authDialog.close();
+    },
     destroy(): void {
       unlockScroll('navigation');
       document.removeEventListener('keydown', handleEscape);

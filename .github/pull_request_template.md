@@ -2,7 +2,7 @@
 
 <!-- Link to the task description -->
 
-https://github.com/rolling-scopes-school/qualifying-stage/blob/main/tasks/minigames/story-2.md
+https://github.com/rolling-scopes-school/qualifying-stage/blob/main/tasks/minigames/story-3.md
 
 ## Screenshot
 
@@ -21,8 +21,9 @@ https://github.com/rolling-scopes-school/qualifying-stage/blob/main/tasks/miniga
 
 <!-- Your self-check of the task completion result and your opinion on the achieved score -->
 
-- [ ] Layout matches the design at 375px, 768px and 1920px
-- [ ] No horizontal scrollbar between 375px and 1920px
+- [ ] API-driven sections handle loading, errors and empty responses
+- [ ] Library filters, sorting and pagination use API requests
+- [ ] Pages, Library controls and dialogs stay synchronized with the URL and browser history
 - [ ] `npm run lint` and `npm run format:check` pass with no errors
 - [ ] No `console.log`, explicit `any` or magic values (design tokens are used)
 - [ ] Commits follow the RS School Git convention

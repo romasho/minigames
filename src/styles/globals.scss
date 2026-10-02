@@ -92,3 +92,46 @@ button:disabled {
 .legal-page a {
   color: var(--color-primary);
 }
+
+.not-found-page {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: 60vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.not-found-page a {
+  display: inline-flex;
+  min-height: ds.$button-height-medium;
+  align-items: center;
+  justify-content: center;
+  padding: ds.$button-medium-padding-block ds.$button-medium-padding-inline;
+  border: ds.$control-border-width solid ds.$color-on-primary;
+  border-radius: ds.$radius-small;
+  background: ds.$color-primary;
+  color: ds.$color-on-primary;
+  font-size: ds.$font-size-label-large;
+  font-weight: ds.$font-weight-bold;
+  text-decoration: none;
+  transition:
+    background ds.$transition-fast ease,
+    box-shadow ds.$transition-fast ease,
+    transform ds.$transition-fast ease;
+
+  &:hover {
+    background: ds.$color-primary-soft;
+    box-shadow: ds.$shadow-level-1;
+  }
+
+  &:active {
+    background: ds.$color-primary-strong;
+    box-shadow: none;
+    transform: translate(ds.$size-0-5, ds.$size-0-5);
+  }
+
+  &:focus-visible {
+    @include ds.focus-ring;
+  }
+}

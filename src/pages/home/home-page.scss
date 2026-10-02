@@ -355,6 +355,13 @@ $developer-game-width: 24%;
     height: $carousel-mobile-height;
   }
 
+  &__track > .api-error,
+  &__track > .api-empty {
+    width: var(--center-card-width);
+    min-height: 100%;
+    margin-inline: auto;
+  }
+
   &__track > .game-card {
     position: absolute;
     top: 0;
