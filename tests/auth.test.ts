@@ -200,6 +200,30 @@ describe('fixed app session', () => {
 });
 
 describe('Auth dialog', () => {
+  it('clears the old form immediately before animating a mode switch', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: false }));
+    Object.defineProperty(Element.prototype, 'animate', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    const dialog = createAuthDialog();
+    document.body.append(dialog.element);
+    dialog.open(AuthMode.Login);
+    fill(dialog.element, 'email', profile.email);
+    fill(dialog.element, 'password', 'abcdef');
+    expect(
+      required<HTMLButtonElement>(dialog.element, '[type=submit]').disabled,
+    ).toBe(false);
+    dialog.setMode(AuthMode.Register);
+    expect(
+      required<HTMLInputElement>(dialog.element, '[name=email]').value,
+    ).toBe('');
+    expect(
+      required<HTMLButtonElement>(dialog.element, '[type=submit]').disabled,
+    ).toBe(true);
+    expect(dialog.element.querySelector('[name=username]')).not.toBeNull();
+    dialog.destroy();
+  });
   it('validates as users type, resets modes and toggles password visibility', () => {
     const dialog = createAuthDialog();
     document.body.append(dialog.element);
