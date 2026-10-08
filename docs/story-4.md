@@ -8,12 +8,15 @@ Base: `story-4`, created from `story-3`. Each task branch is merged with a merge
 4. `codex/story-4-tests`: Vitest tooling, behavior tests, project-wide coverage and final verification (4-4-1 through 4-4-4).
 5. `codex/story-4-integration`: browser verification, stable accessible field names, CI checks and setup/verification notes.
 6. `codex/story-4-auth-transitions`: clear switched forms synchronously, preventing stale form submission during tab animations.
+7. `codex/story-4-firebase-setup`: verify the existing cloud project and Authentication configuration, prepare local Web app parameters, and document the remaining external setup.
 
 The final cross-check comparison is `story-4` → `story-3`; leave that PR unmerged.
 
 ## External setup
 
-Firebase Console initially required account MFA. After MFA and explicit consent to the Firebase terms, the console reported `MiniGames` (`minigames-c1888`) and its Web app as created. However, saving Email/Password did not finish, and reloading then reported a missing project / unavailable terms status. No working provider configuration or live login has been verified. Do not treat the temporary console success screen as proof of completed Firebase setup. Follow the README setup steps once account/project access is restored; automated tests mock Firebase and HTTP boundaries.
+The `MiniGames` project (`minigames-c1888`, project number `957623056036`) exists in Google Cloud and appears in the Firebase project list after refreshing the Google account session. Firebase Management API and Identity Toolkit API are enabled. The Firebase Console still alternates between a terms-status loading error and a project/app permission error when opening the project.
+
+The public Authentication configuration endpoint returns `CONFIGURATION_NOT_FOUND`, so Authentication initialization and provider settings remain unfinished. Web app parameters have been saved locally in the ignored `.env.local`; a production build with those parameters passes. Live sign-in has not been verified. An official Firebase CLI login is prepared as a fallback, pending the account owner's approval of its Google Cloud/Firebase access. Automated tests mock Firebase and HTTP boundaries.
 
 ## Verification
 
