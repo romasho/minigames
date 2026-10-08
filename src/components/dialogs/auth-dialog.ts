@@ -450,7 +450,7 @@ export function createAuthDialog(): AuthDialogController {
       });
     },
     close(): void {
-      requestClose();
+      if (!isPending) finishClose();
     },
     setMode(mode: AuthMode): void {
       switchMode(mode);

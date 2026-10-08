@@ -291,12 +291,27 @@ $details-narrow-label-size: 11px;
     font-size: ds.$font-size-body-small;
   }
 
-  &__avatar--2 {
-    background: ds.$color-primary;
+  @each $index,
+    $color
+      in (
+        1: ds.$color-avatar-1,
+        2: ds.$color-avatar-2,
+        3: ds.$color-avatar-3,
+        4: ds.$color-avatar-4,
+        5: ds.$color-avatar-5
+      )
+  {
+    &__avatar--#{$index} {
+      background: $color;
+    }
   }
 
-  &__avatar--3 {
-    background: ds.$color-avatar-1;
+  [aria-busy='true'] {
+    opacity: ds.$opacity-disabled;
+    cursor: progress;
+  }
+  &__favorite[aria-pressed='true'] {
+    color: ds.$color-like;
   }
 
   &__composer textarea {

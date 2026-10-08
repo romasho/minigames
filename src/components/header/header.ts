@@ -190,9 +190,8 @@ export function createHeader(): HeaderController {
         : [mobileLoginButton, mobileSignUpButton]),
     );
     tabletActions.replaceChildren(
-      ...(session
-        ? [createProfile(session), menuToggle]
-        : [tabletSignUpButton, menuToggle]),
+      session ? createProfile(session) : tabletSignUpButton,
+      menuToggle,
     );
   };
   renderProfile(getSession());
