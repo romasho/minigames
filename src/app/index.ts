@@ -50,6 +50,7 @@ export function startApp(): void {
       header.setAuthMode(auth);
       return;
     }
+    header.setAuthMode(null);
     if (slug) gameDetails.open(slug);
     else gameDetails.close();
     header.setAuthMode(
