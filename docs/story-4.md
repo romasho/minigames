@@ -16,7 +16,9 @@ The final cross-check comparison is `story-4` → `story-3`; leave that PR unmer
 
 The `MiniGames` project (`minigames-c1888`, project number `957623056036`) exists in Google Cloud and appears in the Firebase project list after refreshing the Google account session. Firebase Management API and Identity Toolkit API are enabled. The Firebase Console still alternates between a terms-status loading error and a project/app permission error when opening the project.
 
-The public Authentication configuration endpoint returns `CONFIGURATION_NOT_FOUND`, so Authentication initialization and provider settings remain unfinished. Web app parameters have been saved locally in the ignored `.env.local`; a production build with those parameters passes. Live sign-in has not been verified. An official Firebase CLI login is prepared as a fallback, pending the account owner's approval of its Google Cloud/Firebase access. Automated tests mock Firebase and HTTP boundaries.
+The official Firebase CLI login has completed for the project owner. CLI/API reads confirm that the project and `MiniGames Web` app are active, and the Web SDK configuration matches the ignored `.env.local`. A production build with those parameters passes.
+
+Both public and authenticated Authentication configuration reads return `CONFIGURATION_NOT_FOUND`; an attempted provider update returns the same error. Authentication initialization and provider settings remain unfinished. The [official Firebase setup guide](https://firebase.google.com/codelabs/firebase-terraform#6) requires console initialization for the free Spark plan; the public initialization API requires a billing-enabled Blaze project. The project remains on Spark. The next required step is opening Authentication in a regular browser and clicking **Get started**. Live sign-in has not been verified; automated tests mock Firebase and HTTP boundaries.
 
 ## Verification
 
