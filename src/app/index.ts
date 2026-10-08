@@ -96,6 +96,13 @@ export function startApp(): void {
       return;
     const mode: unknown = detail.mode;
     if (mode !== AuthMode.Login && mode !== AuthMode.Register) return;
+    if (getSession()) {
+      const url: URL = new URL(location.href);
+      url.searchParams.delete('auth');
+      history.replaceState(null, '', url);
+      notify('You are already signed in.', 'success');
+      return;
+    }
     updateQuery('auth', mode);
     syncDialogs();
   });

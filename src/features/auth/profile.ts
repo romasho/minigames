@@ -5,9 +5,8 @@ export interface Profile {
 }
 
 export function profileName(profile: Profile): string {
-  return (
-    profile.displayName.trim() || (profile.email.split('@', 1)[0] ?? 'Player')
-  );
+  const localPart: string = profile.email.split('@', 1)[0] ?? '';
+  return profile.displayName.trim() || localPart || 'Player';
 }
 
 export function profileInitials(name: string): string {
