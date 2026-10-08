@@ -1,5 +1,40 @@
 @use '../../styles/abstracts' as ds;
 
+.app-header__profile {
+  display: flex;
+  align-items: center;
+  gap: ds.$size-1;
+  min-width: 0;
+
+  > span:not(.app-header__avatar) {
+    max-width: ds.$size-15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.app-header__avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: ds.$size-5;
+  height: ds.$size-5;
+  overflow: hidden;
+  border-radius: ds.$radius-full;
+  background: ds.$color-avatar-2;
+  color: ds.$color-on-primary;
+  font-weight: ds.$font-weight-bold;
+
+  img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
 $header-padding-block: 22px;
 $navigation-letter-spacing: -0.5px;
 $menu-open-rotation: 45deg;

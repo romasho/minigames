@@ -135,8 +135,8 @@ export function createAuthDialog(): AuthDialogController {
         ],
       ),
     );
-  const isFormValid: (shouldShow?: boolean) => boolean = (
-    shouldShow: boolean = !isPending,
+  const isFormValid: (shouldShow: boolean) => boolean = (
+    shouldShow: boolean,
   ): boolean => {
     const errors: AuthValues = validateAuth(
       values(),
@@ -373,7 +373,7 @@ export function createAuthDialog(): AuthDialogController {
     'submit',
     (event: SubmitEvent): void => {
       event.preventDefault();
-      if (isPending || !isFormValid()) return;
+      if (isPending || !isFormValid(true)) return;
       const data: AuthValues = values();
       void authenticate((): Promise<Profile> =>
         activeMode === AuthMode.Login
@@ -391,7 +391,7 @@ export function createAuthDialog(): AuthDialogController {
     'input',
     (event: Event): void => {
       if (!(event.target instanceof HTMLInputElement)) return;
-      isFormValid();
+      isFormValid(true);
       setStatus();
     },
     { signal },
@@ -406,7 +406,7 @@ export function createAuthDialog(): AuthDialogController {
   form.addEventListener(
     'focusout',
     (): void => {
-      isFormValid();
+      isFormValid(true);
     },
     { signal },
   );

@@ -21,6 +21,8 @@ export interface GameDetailsDialogController {
   readonly element: HTMLDialogElement;
   open(slug: string): void;
   close(): void;
+  suspend(): void;
+  refresh(): void;
 }
 
 const icons: Record<'heart' | 'star' | 'trophy' | 'close', string> = {
@@ -181,6 +183,8 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
   dialog.append(closeButton, detailsSlot);
   let controller: AbortController | undefined;
   let activeSlug: string | undefined;
+  let isSuspended: boolean;
+  isSuspended = false;
   const loadDetails: (
     slug: string,
     signal: AbortSignal,
@@ -255,12 +259,19 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     if (event.target === dialog) dialog.close();
   });
   dialog.addEventListener('close', (): void => {
+    if (isSuspended) return;
     controller?.abort();
     activeSlug = undefined;
   });
   return {
     element: dialog,
     open(slug: string): void {
+      if (isSuspended && activeSlug === slug) {
+        isSuspended = false;
+        dialog.showModal();
+        return;
+      }
+      isSuspended = false;
       if (activeSlug === slug && dialog.open) return;
       controller?.abort();
       controller = new AbortController();
@@ -269,7 +280,19 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
       void loadDetails(slug, controller.signal);
     },
     close(): void {
+      isSuspended = false;
       if (dialog.open) dialog.close();
+    },
+    suspend(): void {
+      if (!dialog.open) return;
+      isSuspended = true;
+      dialog.close();
+    },
+    refresh(): void {
+      if (!activeSlug) return;
+      controller?.abort();
+      controller = new AbortController();
+      void loadDetails(activeSlug, controller.signal);
     },
   };
 }
