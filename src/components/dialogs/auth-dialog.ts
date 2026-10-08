@@ -117,8 +117,6 @@ export function createAuthDialog(): AuthDialogController {
   dialog.append(surface);
 
   let activeMode: AuthMode = AuthMode.Login;
-  let switchVersion: number;
-  switchVersion = 0;
   let closeTimer: number | undefined;
   let isPending: boolean;
   isPending = false;
@@ -261,45 +259,21 @@ export function createAuthDialog(): AuthDialogController {
     dialog.dispatchEvent(
       new CustomEvent('auth-mode-change', { bubbles: true, detail: { mode } }),
     );
-    const version: number = ++switchVersion;
     for (const animation of panel.getAnimations()) animation.cancel();
-    if (shouldReduceMotion()) {
-      render(mode);
-      return;
-    }
-    const outAnimation: Animation = panel.animate(
+    render(mode);
+    if (shouldReduceMotion()) return;
+    panel.animate(
       [
-        { opacity: 1, transform: 'translateX(0)' },
         {
           opacity: 0,
           transform:
             mode === AuthMode.Register
-              ? 'translateX(-14px)'
-              : 'translateX(14px)',
+              ? 'translateX(14px)'
+              : 'translateX(-14px)',
         },
+        { opacity: 1, transform: 'translateX(0)' },
       ],
-      { duration: 110, easing: 'ease-in', fill: 'forwards' },
-    );
-    outAnimation.addEventListener(
-      'finish',
-      (): void => {
-        if (version !== switchVersion) return;
-        render(mode);
-        panel.animate(
-          [
-            {
-              opacity: 0,
-              transform:
-                mode === AuthMode.Register
-                  ? 'translateX(14px)'
-                  : 'translateX(-14px)',
-            },
-            { opacity: 1, transform: 'translateX(0)' },
-          ],
-          { duration: 180, easing: 'ease-out', fill: 'both' },
-        );
-      },
-      { once: true },
+      { duration: 180, easing: 'ease-out', fill: 'both' },
     );
   };
 
@@ -428,7 +402,6 @@ export function createAuthDialog(): AuthDialogController {
         return;
       }
       if (isPending || (mode === activeMode && dialog.open)) return;
-      ++switchVersion;
       for (const animation of panel.getAnimations()) animation.cancel();
       render(mode);
 
