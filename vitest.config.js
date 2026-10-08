@@ -8,9 +8,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: [
-        'src/main.ts', // Pure entry point: imports styles and invokes startApp, with no decisions.
-      ],
+      // All source TypeScript, including bootstrap URL recovery, is in scope.
+      exclude: [],
       reporter: ['text', 'html', 'json-summary'],
       thresholds: { statements: 80 },
     },

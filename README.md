@@ -15,8 +15,6 @@ Vite serves the development build with hot module replacement. Use
 `npm run build` for a type-checked, optimized production bundle in `dist` and
 `npm run preview` to inspect that bundle locally.
 
-## Quality checks
-
 ## Firebase Authentication (Story 4)
 
 Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/), register a Web app, and copy `.env.example` to `.env.local`. Fill in the four `VITE_FIREBASE_*` values from the Web app configuration. These identify the public Firebase Web app; never use service-account keys here.
@@ -32,12 +30,16 @@ npm run typecheck
 npm run lint
 npm run format:check
 npm run validate
+npm test
+npm run test:coverage
 ```
 
 ESLint uses strict, type-aware TypeScript rules and the Unicorn recommended
 configuration. Prettier controls formatting. Husky validates commit messages
 against the RS School Conventional Commits format and prevents pushes when lint
 or formatting checks fail.
+
+Tests use Vitest, jsdom, mocked Firebase and HTTP responses. Coverage includes every source TypeScript file, with no source exclusions; `npm run test:coverage` enforces 80% aggregate statement coverage and writes an HTML report to `coverage/index.html`.
 
 ## Design system
 
