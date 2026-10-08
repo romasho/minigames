@@ -11,4 +11,13 @@ The final cross-check comparison is `story-4` → `story-3`; leave that PR unmer
 
 ## External setup
 
-Firebase Console currently requires account MFA before project creation. Live Firebase authentication must be verified after project configuration; automated tests mock the Firebase SDK and HTTP boundaries.
+Firebase Console initially required account MFA. After MFA and explicit consent to the Firebase terms, the console reported `MiniGames` (`minigames-c1888`) and its Web app as created. However, saving Email/Password did not finish, and reloading then reported a missing project / unavailable terms status. No working provider configuration or live login has been verified. Do not treat the temporary console success screen as proof of completed Firebase setup. Follow the README setup steps once account/project access is restored; automated tests mock Firebase and HTTP boundaries.
+
+5. `codex/story-4-integration`: browser verification, stable accessible field names, CI checks and setup/verification notes.
+
+## Verification
+
+- 80 behavior tests pass; project-wide statement coverage is above 96%, with no source files excluded.
+- Typecheck, ESLint, Prettier and the production build pass.
+- Browser checks cover live public data, validation, Auth URL updates and guest action guards. Live Firebase sign-in remains unverified because of the console error above.
+- All task branches are merged locally into `story-4`. The cross-check branch is not merged into `story-3`.

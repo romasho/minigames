@@ -3,10 +3,11 @@
 .auth-dialog__field-error {
   color: ds.$color-error;
   font-size: ds.$font-size-body-small;
+  font-weight: ds.$font-weight-regular;
 }
 
 .auth-dialog [aria-invalid='true'] {
-  outline: ds.$size-0-5 solid ds.$color-error;
+  outline: ds.$control-border-width solid ds.$color-error;
 }
 
 $visibility-button-padding: 7px;
