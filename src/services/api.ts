@@ -36,6 +36,7 @@ export interface LeaderboardEntry {
   favoriteGameName: string;
 }
 export interface GameDetails {
+  isLikedByCurrentUser?: boolean;
   slug: string;
   name: string;
   heroImage: string;
@@ -51,6 +52,7 @@ export interface GameDetails {
   }[];
 }
 export interface GameComment {
+  isLikedByCurrentUser?: boolean;
   commentId: string;
   authorName: string;
   text: string;
@@ -113,10 +115,14 @@ function isLeader(value: unknown): value is LeaderboardEntry {
   );
 }
 function isComment(value: unknown): value is GameComment {
-  return hasFields(
-    value,
-    ['commentId', 'authorName', 'text', 'createdAt'],
-    ['likesCount'],
+  return (
+    hasFields(
+      value,
+      ['commentId', 'authorName', 'text', 'createdAt'],
+      ['likesCount'],
+    ) &&
+    (value.isLikedByCurrentUser === undefined ||
+      typeof value.isLikedByCurrentUser === 'boolean')
   );
 }
 async function get(path: string, signal?: AbortSignal): Promise<unknown> {
@@ -179,9 +185,10 @@ export async function getGames(
 export async function getGameDetails(
   slug: string,
   signal?: AbortSignal,
+  userEmail?: string,
 ): Promise<GameDetails> {
   const value: unknown = await get(
-    `/api/games/${encodeURIComponent(slug)}`,
+    `/api/games/${encodeURIComponent(slug)}${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`,
     signal,
   );
   if (
@@ -212,6 +219,7 @@ export async function getGameDetails(
     fullDescription: String(details.fullDescription),
     rating: Number(details.rating),
     likesCount: Number(details.likesCount),
+    isLikedByCurrentUser: details.isLikedByCurrentUser === true,
     specs,
     topRecords: records,
   };
@@ -219,9 +227,10 @@ export async function getGameDetails(
 export async function getComments(
   slug: string,
   signal?: AbortSignal,
+  userEmail?: string,
 ): Promise<CommentsResult> {
   const value: unknown = await get(
-    `/api/games/${encodeURIComponent(slug)}/comments?limit=3&sort=newest`,
+    `/api/games/${encodeURIComponent(slug)}/comments?limit=3&sort=newest${userEmail ? `&userEmail=${encodeURIComponent(userEmail)}` : ''}`,
     signal,
   );
   const data: GameComment[] = parseList(value, isComment);
@@ -229,3 +238,96 @@ export async function getComments(
     throw new Error('Invalid comments metadata');
   return { data, meta: { totalComments: Number(value.meta.totalComments) } };
 }
+
+export class SessionRequiredError extends Error {
+  constructor() {
+    super('Please sign in to continue.');
+  }
+}
+
+export function requireSession(): AppSession {
+  const session: AppSession | null = getSession();
+  if (!session) throw new SessionRequiredError();
+  return session;
+}
+
+async function post(
+  path: string,
+  body: Record<string, string>,
+): Promise<unknown> {
+  const response: Response = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) throw new ApiError(response.status);
+  const value: unknown = await response.json();
+  if (!isRecord(value) || !isRecord(value.data))
+    throw new Error('Invalid mutation response');
+  return value.data;
+}
+
+export interface FavoriteResult {
+  isFavorited: boolean;
+  likesCount: number;
+}
+export interface LikeResult {
+  isLikedByCurrentUser: boolean;
+  likesCount: number;
+}
+export async function toggleFavorite(slug: string): Promise<FavoriteResult> {
+  const session: AppSession = requireSession();
+  const value: unknown = await post(
+    `/api/games/${encodeURIComponent(slug)}/favorite`,
+    { userEmail: session.email },
+  );
+  if (
+    !hasFields(value, [], ['likesCount']) ||
+    typeof value.isFavorited !== 'boolean'
+  )
+    throw new Error('Invalid favorite response');
+  return {
+    isFavorited: value.isFavorited,
+    likesCount: Number(value.likesCount),
+  };
+}
+export async function toggleCommentLike(
+  commentId: string,
+): Promise<LikeResult> {
+  const session: AppSession = requireSession();
+  const value: unknown = await post(
+    `/api/comments/${encodeURIComponent(commentId)}/like`,
+    { userEmail: session.email },
+  );
+  if (
+    !hasFields(value, [], ['likesCount']) ||
+    typeof value.isLikedByCurrentUser !== 'boolean'
+  )
+    throw new Error('Invalid like response');
+  return {
+    isLikedByCurrentUser: value.isLikedByCurrentUser,
+    likesCount: Number(value.likesCount),
+  };
+}
+export async function submitComment(
+  slug: string,
+  text: string,
+): Promise<GameComment> {
+  const session: AppSession = requireSession();
+  const trimmed: string = text.trim();
+  if (!trimmed || trimmed.length > 500)
+    throw new Error('Use 1–500 characters.');
+  const value: unknown = await post(
+    `/api/games/${encodeURIComponent(slug)}/comments`,
+    {
+      userEmail: session.email,
+      authorName: commentAuthor(session),
+      text: trimmed,
+    },
+  );
+  if (!isComment(value)) throw new Error('Invalid comment response');
+  return value;
+}
+import { getSession, type AppSession } from '../features/auth/session';
+import { commentAuthor } from '../features/auth/profile';
