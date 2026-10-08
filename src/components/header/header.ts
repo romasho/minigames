@@ -7,6 +7,12 @@ import {
 import { lockScroll, unlockScroll } from '../../utils/scroll-lock';
 import { appUrl, getRoutePath, libraryUrl } from '../../app/urls';
 import './header.scss';
+import {
+  getSession,
+  subscribeSession,
+  type AppSession,
+} from '../../features/auth/session';
+import { createProfile } from './profile';
 
 interface NavigationItem {
   readonly label: string;
@@ -172,6 +178,25 @@ export function createHeader(): HeaderController {
   mobileMenu.append(mobileMenuHeader, mobileNavigation, mobileActions);
 
   const authDialog: AuthDialogController = createAuthDialog();
+  const renderProfile: (session: AppSession | null) => void = (
+    session: AppSession | null,
+  ): void => {
+    authActions.replaceChildren(
+      ...(session ? [createProfile(session)] : [loginButton, signUpButton]),
+    );
+    mobileActions.replaceChildren(
+      ...(session
+        ? [createProfile(session)]
+        : [mobileLoginButton, mobileSignUpButton]),
+    );
+    tabletActions.replaceChildren(
+      ...(session
+        ? [createProfile(session), menuToggle]
+        : [tabletSignUpButton, menuToggle]),
+    );
+  };
+  renderProfile(getSession());
+  const unsubscribe: () => void = subscribeSession(renderProfile);
   header.append(inner, mobileMenu, authDialog.element);
   updateCurrentPage(getRoutePath());
 
@@ -243,6 +268,7 @@ export function createHeader(): HeaderController {
       else authDialog.close();
     },
     destroy(): void {
+      unsubscribe();
       unlockScroll('navigation');
       document.removeEventListener('keydown', handleEscape);
       desktopMedia.removeEventListener('change', handleDesktopMediaChange);
