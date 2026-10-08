@@ -45,6 +45,11 @@ export function createField(
     control.append(toggle);
   }
 
-  label.append(labelText, control);
+  const error: HTMLSpanElement = document.createElement('span');
+  error.className = 'auth-dialog__field-error';
+  error.id = `auth-error-${field.name}`;
+  error.setAttribute('aria-live', 'polite');
+  input.setAttribute('aria-describedby', error.id);
+  label.append(labelText, control, error);
   return label;
 }

@@ -27,7 +27,7 @@ export const fieldsByMode: Readonly<
       icon: 'user',
       label: 'Username',
       name: 'username',
-      placeholder: 'e.g. CozyGamer_99',
+      placeholder: 'e.g. CozyGamer99',
       type: 'text',
     },
     {
@@ -43,7 +43,7 @@ export const fieldsByMode: Readonly<
       icon: 'lock',
       label: 'Password',
       name: 'password',
-      placeholder: 'Min. 8 characters',
+      placeholder: 'Min. 6 characters, e.g. Cozy1!',
       type: 'password',
     },
     {

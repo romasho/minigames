@@ -1,5 +1,14 @@
 @use '../../styles/abstracts' as ds;
 
+.auth-dialog__field-error {
+  color: ds.$color-error;
+  font-size: ds.$font-size-body-small;
+}
+
+.auth-dialog [aria-invalid='true'] {
+  outline: ds.$size-0-5 solid ds.$color-error;
+}
+
 $visibility-button-padding: 7px;
 $visibility-strike-rotation: -45deg;
 $provider-button-gap: 10px;
