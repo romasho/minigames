@@ -17,6 +17,16 @@ Vite serves the development build with hot module replacement. Use
 
 ## Quality checks
 
+## Firebase Authentication (Story 4)
+
+Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/), register a Web app, and copy `.env.example` to `.env.local`. Fill in the four `VITE_FIREBASE_*` values from the Web app configuration. These identify the public Firebase Web app; never use service-account keys here.
+
+In Authentication → Sign-in method, enable Email/Password and Google (choose a support email). Add `localhost` and your deployed hostname under Authentication → Settings → Authorized domains. Restart Vite after changing environment variables. Production builds need the same variables at build time.
+
+The SDK establishes identity; the UI uses a separate five-minute app session stored as `minigames:sholomickiyr:app-session`. It contains only `displayName`, `email`, `authenticatedAt` and optional `avatarUrl`. Reloads do not extend its lifetime. Expiration and logout remove this key and sign out of Firebase. See [the Story 4 breakdown](docs/story-4.md) for branches and task scope.
+
+## Quality checks
+
 ```bash
 npm run typecheck
 npm run lint
