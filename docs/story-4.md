@@ -8,21 +8,21 @@ Base: `story-4`, created from `story-3`. Each task branch is merged with a merge
 4. `codex/story-4-tests`: Vitest tooling, behavior tests, project-wide coverage and final verification (4-4-1 through 4-4-4).
 5. `codex/story-4-integration`: browser verification, stable accessible field names, CI checks and setup/verification notes.
 6. `codex/story-4-auth-transitions`: clear switched forms synchronously, preventing stale form submission during tab animations.
-7. `codex/story-4-firebase-setup`: verify the existing cloud project and Authentication configuration, prepare local Web app parameters, and document the remaining external setup.
+7. `codex/story-4-firebase-setup`: restore Firebase access, configure Authentication and local Web app parameters, and verify live registration/login.
 
 The final cross-check comparison is `story-4` → `story-3`; leave that PR unmerged.
 
 ## External setup
 
-The `MiniGames` project (`minigames-c1888`, project number `957623056036`) exists in Google Cloud and appears in the Firebase project list after refreshing the Google account session. Firebase Management API and Identity Toolkit API are enabled. The Firebase Console still alternates between a terms-status loading error and a project/app permission error when opening the project.
+The `MiniGames` project (`minigames-c1888`, project number `957623056036`) and its `MiniGames Web` app are active. Firebase Authentication has been initialized on the free Spark plan, and Email/Password and Google sign-in are enabled. The Google provider uses the public app name `MiniGames` and the project owner's support email.
 
-The official Firebase CLI login has completed for the project owner. CLI/API reads confirm that the project and `MiniGames Web` app are active, and the Web SDK configuration matches the ignored `.env.local`. A production build with those parameters passes.
+Authorized domains include `localhost`, `127.0.0.1`, `romasho.github.io`, `minigames-c1888.firebaseapp.com` and `minigames-c1888.web.app`. Official CLI/API reads confirm these settings independently of the intermittently failing embedded console. The verified Web SDK parameters are saved in the ignored `.env.local`; production builds require the same variables at build time.
 
-Both public and authenticated Authentication configuration reads return `CONFIGURATION_NOT_FOUND`; an attempted provider update returns the same error. Authentication initialization and provider settings remain unfinished. The [official Firebase setup guide](https://firebase.google.com/codelabs/firebase-terraform#6) requires console initialization for the free Spark plan; the public initialization API requires a billing-enabled Blaze project. The project remains on Spark. The next required step is opening Authentication in a regular browser and clicking **Get started**. Live sign-in has not been verified; automated tests mock Firebase and HTTP boundaries.
+Live checks passed for Email/Password registration, profile updates, login, incorrect-password rejection and Web SDK logout. Browser checks also passed for login through the application, displaying the profile name, session recovery after reload and logout. Temporary test accounts and their local credentials were removed. The Google provider's OAuth endpoint returns the expected Google authorization URL, but a full Google popup login in the embedded browser failed with a network error and remains unverified. Automated tests mock Firebase and HTTP boundaries.
 
 ## Verification
 
 - 81 behavior tests pass; project-wide statement coverage is 96.50%, with no source files excluded.
 - Typecheck, ESLint, Prettier and the production build pass.
-- Browser checks cover live public data, validation, Auth URL updates and guest action guards. Live Firebase sign-in remains unverified because of the console error above.
+- Browser checks cover live public data, validation, Auth URL updates, guest action guards and live Email/Password login/session/logout. Full Google popup login remains unverified as described above.
 - All task branches are merged locally into `story-4`. The cross-check branch is not merged into `story-3`.
