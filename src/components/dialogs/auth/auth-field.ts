@@ -8,6 +8,7 @@ export function createField(
   const label: HTMLLabelElement = document.createElement('label');
   label.className = 'auth-dialog__field';
   const labelText: HTMLSpanElement = document.createElement('span');
+  labelText.id = `auth-label-${field.name}`;
   labelText.textContent = field.label;
   const control: HTMLSpanElement = document.createElement('span');
   control.className = 'auth-dialog__control';
@@ -15,6 +16,7 @@ export function createField(
   fieldIcon.classList.add('auth-dialog__field-icon');
   const input: HTMLInputElement = document.createElement('input');
   input.name = field.name;
+  input.setAttribute('aria-labelledby', labelText.id);
   input.type = field.type;
   input.placeholder = field.placeholder;
   input.autocomplete = field.autocomplete;
@@ -45,6 +47,11 @@ export function createField(
     control.append(toggle);
   }
 
-  label.append(labelText, control);
+  const error: HTMLSpanElement = document.createElement('span');
+  error.className = 'auth-dialog__field-error';
+  error.id = `auth-error-${field.name}`;
+  error.setAttribute('aria-live', 'polite');
+  input.setAttribute('aria-describedby', error.id);
+  label.append(labelText, control, error);
   return label;
 }

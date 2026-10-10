@@ -14,21 +14,31 @@ import {
   type CommentsResult,
   type GameComment,
   type GameDetails,
+  toggleFavorite,
+  toggleCommentLike,
+  submitComment,
+  SessionRequiredError,
 } from '../../services/api';
+import { getSession, type AppSession } from '../../features/auth/session';
+import { AuthMode } from './auth/auth-types';
+import { profileName } from '../../features/auth/profile';
 import './game-details-dialog.scss';
 
 export interface GameDetailsDialogController {
   readonly element: HTMLDialogElement;
   open(slug: string): void;
   close(): void;
+  suspend(): void;
+  refresh(): void;
 }
 
-const icons: Record<'heart' | 'star' | 'trophy' | 'close', string> = {
+const icons: Record<'heart' | 'star' | 'trophy' | 'send' | 'close', string> = {
   heart:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3.1 6.3 7 1-5 4.9 1.2 6.9L12 17.8l-6.3 3.3 1.2-6.9-5-4.9 7-1L12 2Z"/></svg>',
   trophy:
     '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h10v3h4v3c0 3.1-2 5.3-5.1 5.6A6 6 0 0 1 13 16v3h4v3H7v-3h4v-3a6 6 0 0 1-2.9-2.4C5 13.3 3 11.1 3 8V5h4V2Zm0 5H5v1c0 1.5.7 2.7 2.1 3.2A6 6 0 0 1 7 10V7Zm10 0v3c0 .4 0 .8-.1 1.2C18.3 10.7 19 9.5 19 8V7h-2Z"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 4 16 8-16 8 3-8-3-8Zm3 8h13"/></svg>',
   close:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg>',
 };
@@ -106,7 +116,6 @@ function renderDetails(game: GameDetails, comments: HTMLElement): HTMLElement {
   favorite.type = 'button';
   favorite.className = 'game-details__button game-details__favorite';
   favorite.innerHTML = `${icons.heart}<span>Add to Favorites</span>`;
-  favorite.disabled = true;
   favorite.title = 'Sign in to save favorites';
   actions.append(play, favorite);
   const records: HTMLElement = document.createElement('section');
@@ -146,7 +155,10 @@ function renderComment(comment: GameComment): HTMLElement {
   article.className = 'game-details__comment';
   const heading: HTMLDivElement = document.createElement('div');
   heading.className = 'game-details__comment-heading';
-  const avatar: HTMLElement = text('span', comment.authorName.charAt(0));
+  const avatar: HTMLElement = text(
+    'span',
+    comment.authorName.trim().charAt(0).toUpperCase(),
+  );
   avatar.className = 'game-details__avatar';
   avatar.setAttribute('aria-hidden', 'true');
   const author: HTMLElement = text('h3', comment.authorName);
@@ -155,7 +167,14 @@ function renderComment(comment: GameComment): HTMLElement {
   date.textContent = relativeTime(comment.createdAt);
   heading.append(avatar, author, date);
   const body: HTMLElement = text('p', comment.text);
-  const likes: HTMLElement = text('span', String(comment.likesCount));
+  const likes: HTMLButtonElement = document.createElement('button');
+  likes.type = 'button';
+  likes.textContent = String(comment.likesCount);
+  likes.setAttribute('aria-label', `Like comment by ${comment.authorName}`);
+  likes.setAttribute(
+    'aria-pressed',
+    String(comment.isLikedByCurrentUser === true),
+  );
   likes.className = 'game-details__comment-like';
   likes.insertAdjacentHTML('afterbegin', icons.heart);
   article.append(heading, body, likes);
@@ -181,6 +200,113 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
   dialog.append(closeButton, detailsSlot);
   let controller: AbortController | undefined;
   let activeSlug: string | undefined;
+  let isSuspended: boolean;
+  isSuspended = false;
+  const avatarColors: Map<string, number> = new Map<string, number>();
+  const requestAuth: () => void = (): void => {
+    dialog.dispatchEvent(
+      new CustomEvent('request-auth', {
+        bubbles: true,
+        detail: { mode: AuthMode.Login },
+      }),
+    );
+    notify(
+      'Please sign in to continue.',
+      'error',
+      document.querySelector('.auth-dialog[open]') ?? document.body,
+    );
+  };
+  const mutate: (
+    button: HTMLButtonElement,
+    operation: () => Promise<void>,
+  ) => Promise<void> = async (
+    button: HTMLButtonElement,
+    operation: () => Promise<void>,
+  ): Promise<void> => {
+    if (button.disabled) return;
+    if (!getSession()) {
+      requestAuth();
+      return;
+    }
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    try {
+      await operation();
+    } catch (error: unknown) {
+      if (error instanceof SessionRequiredError) requestAuth();
+      else
+        notify(
+          error instanceof ApiError && error.status >= 400 && error.status < 500
+            ? 'The server rejected the request. Please try again.'
+            : 'The result is unknown. Refresh to check before trying again.',
+          'error',
+          dialog.open ? dialog : document.body,
+        );
+    } finally {
+      button.disabled = false;
+      button.setAttribute('aria-busy', 'false');
+    }
+  };
+  const createComposer: (
+    slug: string,
+    signal: AbortSignal,
+    session: AppSession | null,
+  ) => HTMLElement = (
+    slug: string,
+    signal: AbortSignal,
+    session: AppSession | null,
+  ): HTMLElement => {
+    const form: HTMLFormElement = document.createElement('form');
+    form.className = 'game-details__composer';
+    const avatar: HTMLElement = text(
+      'span',
+      session ? profileName(session).trim().charAt(0).toUpperCase() : '?',
+    );
+    avatar.className = 'game-details__avatar';
+    const input: HTMLTextAreaElement = document.createElement('textarea');
+    input.setAttribute('aria-label', 'Your comment');
+    input.placeholder = session
+      ? 'Share your thoughts…'
+      : 'Sign in to write a comment';
+    input.disabled = !session;
+    input.rows = 1;
+    const send: HTMLButtonElement = document.createElement('button');
+    send.type = 'submit';
+    send.className = 'game-details__send';
+    send.setAttribute('aria-label', 'Send comment');
+    send.innerHTML = icons.send;
+    send.disabled = true;
+    const resize: () => void = (): void => {
+      input.style.height = 'auto';
+      input.style.height = `${String(input.scrollHeight)}px`;
+      send.disabled =
+        !session || !input.value.trim() || input.value.trim().length > 500;
+    };
+    input.addEventListener('input', resize);
+    form.addEventListener('submit', (event: SubmitEvent): void => {
+      event.preventDefault();
+      void mutate(send, async (): Promise<void> => {
+        input.disabled = true;
+        try {
+          await submitComment(slug, input.value);
+          if (signal.aborted) return;
+          input.value = '';
+          resize();
+          notify('Comment posted.', 'success', dialog);
+          await loadComments(slug, signal);
+        } finally {
+          input.disabled = !getSession();
+        }
+      });
+    });
+    input.addEventListener('keydown', (event: KeyboardEvent): void => {
+      if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+      event.preventDefault();
+      if (!send.disabled) form.requestSubmit();
+    });
+    form.append(avatar, input, send);
+    return form;
+  };
   const loadDetails: (
     slug: string,
     signal: AbortSignal,
@@ -191,12 +317,64 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     const startedAt: number = performance.now();
     detailsSlot.replaceChildren(skeleton('Loading game details', 'details'));
     try {
+      const session: AppSession | null = getSession();
       const game: GameDetails = await withSkeleton(
-        getGameDetails(slug, signal),
+        getGameDetails(slug, signal, session?.email),
         startedAt,
       );
       if (signal.aborted) return;
       detailsSlot.replaceChildren(renderDetails(game, comments));
+      const favorite: HTMLButtonElement | null = detailsSlot.querySelector(
+        '.game-details__favorite',
+      );
+      const setFavorite: (isFavorited: boolean, count: number) => void = (
+        isFavorited: boolean,
+        count: number,
+      ): void => {
+        if (!favorite) return;
+        favorite.setAttribute('aria-pressed', String(isFavorited));
+        favorite.setAttribute(
+          'aria-label',
+          isFavorited ? 'Remove from Favorites' : 'Add to Favorites',
+        );
+        favorite.innerHTML = icons.heart;
+        favorite.append(
+          text(
+            'span',
+            isFavorited ? 'Remove from Favorites' : 'Add to Favorites',
+          ),
+        );
+        const likes: HTMLElement | null = detailsSlot.querySelector(
+          '.game-details__likes',
+        );
+        if (!likes) {
+          return;
+        }
+
+        likes.innerHTML = icons.heart;
+        likes.append(text('span', formatLikes(count)));
+        likes.setAttribute('aria-label', `${String(count)} likes`);
+      };
+      setFavorite(game.isLikedByCurrentUser === true, game.likesCount);
+      favorite?.addEventListener('click', (): void => {
+        void mutate(favorite, async (): Promise<void> => {
+          const result: Awaited<ReturnType<typeof toggleFavorite>> =
+            await toggleFavorite(slug);
+          if (
+            signal.aborted ||
+            getSession()?.authenticatedAt !== session?.authenticatedAt
+          )
+            return;
+          setFavorite(result.isFavorited, result.likesCount);
+          notify(
+            result.isFavorited
+              ? 'Added to Favorites.'
+              : 'Removed from Favorites.',
+            'success',
+            dialog,
+          );
+        });
+      });
       void loadComments(slug, signal);
     } catch (error: unknown) {
       if (signal.aborted) return;
@@ -224,8 +402,9 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     const startedAt: number = performance.now();
     comments.replaceChildren(skeleton('Loading comments', 'comments'));
     try {
+      const session: AppSession | null = getSession();
       const result: CommentsResult = await withSkeleton(
-        getComments(slug, signal),
+        getComments(slug, signal, session?.email),
         startedAt,
       );
       if (signal.aborted) return;
@@ -235,10 +414,43 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
       );
       comments.replaceChildren(
         heading,
+        createComposer(slug, signal, session),
         ...(result.data.length > 0
-          ? result.data.map((comment: GameComment): HTMLElement =>
-              renderComment(comment),
-            )
+          ? result.data.map((comment: GameComment): HTMLElement => {
+              const article: HTMLElement = renderComment(comment);
+              if (!avatarColors.has(comment.authorName))
+                avatarColors.set(
+                  comment.authorName,
+                  Math.floor(Math.random() * 5) + 1,
+                );
+              article
+                .querySelector('.game-details__avatar')
+                ?.classList.add(
+                  `game-details__avatar--${String(avatarColors.get(comment.authorName))}`,
+                );
+              const like: HTMLButtonElement | null =
+                article.querySelector('button');
+              like?.addEventListener('click', (): void => {
+                void mutate(like, async (): Promise<void> => {
+                  const response: Awaited<
+                    ReturnType<typeof toggleCommentLike>
+                  > = await toggleCommentLike(comment.commentId);
+                  if (
+                    signal.aborted ||
+                    getSession()?.authenticatedAt !== session?.authenticatedAt
+                  )
+                    return;
+                  like.setAttribute(
+                    'aria-pressed',
+                    String(response.isLikedByCurrentUser),
+                  );
+                  like.innerHTML = icons.heart;
+                  like.append(text('span', String(response.likesCount)));
+                  notify('Comment like updated.', 'success', dialog);
+                });
+              });
+              return article;
+            })
           : [emptyState('No comments yet.')]),
       );
     } catch {
@@ -255,12 +467,19 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     if (event.target === dialog) dialog.close();
   });
   dialog.addEventListener('close', (): void => {
+    if (isSuspended) return;
     controller?.abort();
     activeSlug = undefined;
   });
   return {
     element: dialog,
     open(slug: string): void {
+      if (isSuspended && activeSlug === slug) {
+        isSuspended = false;
+        dialog.showModal();
+        return;
+      }
+      isSuspended = false;
       if (activeSlug === slug && dialog.open) return;
       controller?.abort();
       controller = new AbortController();
@@ -269,7 +488,19 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
       void loadDetails(slug, controller.signal);
     },
     close(): void {
+      isSuspended = false;
       if (dialog.open) dialog.close();
+    },
+    suspend(): void {
+      if (!dialog.open) return;
+      isSuspended = true;
+      dialog.close();
+    },
+    refresh(): void {
+      if (!activeSlug) return;
+      controller?.abort();
+      controller = new AbortController();
+      void loadDetails(activeSlug, controller.signal);
     },
   };
 }

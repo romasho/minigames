@@ -4,6 +4,12 @@ import { AuthMode } from '../components/dialogs/auth-dialog';
 import { createGameDetailsDialog } from '../components/dialogs/game-details-dialog';
 import { getRoutePath } from './urls';
 import { renderRoute, router } from './router';
+import {
+  startSession,
+  getSession,
+  subscribeSession,
+} from '../features/auth/session';
+import { notify } from '../components/feedback';
 
 function updateQuery(key: string, value: string | null): void {
   const url: URL = new URL(location.href);
@@ -16,6 +22,7 @@ function updateQuery(key: string, value: string | null): void {
  * Starts the custom History API router and restores shareable dialog state.
  */
 export function startApp(): void {
+  const stopSession: () => void = startSession();
   const root: HTMLElement = document.createElement('div');
   root.id = 'app';
   const header: ReturnType<typeof createHeader> = createHeader();
@@ -27,9 +34,23 @@ export function startApp(): void {
   document.body.append(root);
 
   const syncDialogs: () => void = (): void => {
+    const session: ReturnType<typeof getSession> = getSession();
     const parameters: URLSearchParams = new URLSearchParams(location.search);
     const slug: string | null = parameters.get('game');
-    const auth: string | null = parameters.get('auth');
+    let auth: string | null = parameters.get('auth');
+    if (session && parameters.has('auth')) {
+      const url: URL = new URL(location.href);
+      url.searchParams.delete('auth');
+      history.replaceState(null, '', url);
+      auth = null;
+      notify('You are already signed in.', 'success');
+    }
+    if (auth === AuthMode.Login || auth === AuthMode.Register) {
+      gameDetails.suspend();
+      header.setAuthMode(auth);
+      return;
+    }
+    header.setAuthMode(null);
     if (slug) gameDetails.open(slug);
     else gameDetails.close();
     header.setAuthMode(
@@ -59,7 +80,11 @@ export function startApp(): void {
     syncDialogs();
   });
   gameDetails.element.addEventListener('close', (): void => {
-    if (!new URLSearchParams(location.search).has('game')) return;
+    if (
+      new URLSearchParams(location.search).has('auth') ||
+      !new URLSearchParams(location.search).has('game')
+    )
+      return;
     const url: URL = new URL(location.href);
     url.searchParams.delete('game');
     history.replaceState(null, '', url);
@@ -71,6 +96,13 @@ export function startApp(): void {
       return;
     const mode: unknown = detail.mode;
     if (mode !== AuthMode.Login && mode !== AuthMode.Register) return;
+    if (getSession()) {
+      const url: URL = new URL(location.href);
+      url.searchParams.delete('auth');
+      history.replaceState(null, '', url);
+      notify('You are already signed in.', 'success');
+      return;
+    }
     updateQuery('auth', mode);
     syncDialogs();
   });
@@ -84,10 +116,15 @@ export function startApp(): void {
       updateQuery('auth', mode);
   });
   root.addEventListener('auth-closed', (): void => {
-    if (!new URLSearchParams(location.search).has('auth')) return;
     const url: URL = new URL(location.href);
     url.searchParams.delete('auth');
     history.replaceState(null, '', url);
+    syncDialogs();
+  });
+
+  const unsubscribeSession: () => void = subscribeSession((): void => {
+    syncDialogs();
+    gameDetails.refresh();
   });
 
   root.addEventListener('click', (event: MouseEvent): void => {
@@ -119,6 +156,8 @@ export function startApp(): void {
   addEventListener(
     'pagehide',
     (): void => {
+      unsubscribeSession();
+      stopSession();
       page.dispatchEvent(new Event('page-disconnect'));
       header.destroy();
       removeEventListener('popstate', syncRoute);

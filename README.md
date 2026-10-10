@@ -4,7 +4,7 @@ A collection of small, lightweight games.
 
 ## Getting started
 
-Requirements: Node.js 20.19 or newer.
+Requirements: Node.js 22.13+ (22.x) or 24+. GitHub Actions uses Node.js 24; use it locally for consistency.
 
 ```bash
 npm install
@@ -15,6 +15,18 @@ Vite serves the development build with hot module replacement. Use
 `npm run build` for a type-checked, optimized production bundle in `dist` and
 `npm run preview` to inspect that bundle locally.
 
+## Firebase Authentication (Story 4)
+
+Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/), register a Web app, and copy `.env.example` to `.env.local`. Fill in the four `VITE_FIREBASE_*` values from the Web app configuration. These identify the public Firebase Web app; never use service-account keys here.
+
+In Authentication → Sign-in method, enable Email/Password and Google (choose a support email). Add `localhost`, `127.0.0.1` (when using that development URL) and your deployed hostname under Authentication → Settings → Authorized domains. Restart Vite after changing environment variables. Production builds need the same variables at build time.
+
+GitHub Pages builds use the public MiniGames Web app identifiers committed in `.env.production`. These Firebase client parameters are included in the browser bundle; never place service-account keys or other private credentials in this file. You can override any parameter with repository Actions variables (or secrets) under Settings → Secrets and variables → Actions: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID` and `VITE_FIREBASE_APP_ID`. Repository variables take precedence over secrets of the same name. Empty Actions values fall back to `.env.production`. The deployment workflow validates the resolved configuration and passes it to Vite; local `.env.local` files are not uploaded to the runner.
+
+The SDK establishes identity; the UI uses a separate five-minute app session stored as `minigames:sholomickiyr:app-session`. It contains only `displayName`, `email`, `authenticatedAt` and optional `avatarUrl`. The stored profile is accepted only after Firebase finishes restoring the same account; the displayed name/avatar come from Firebase, and protected mutations validate the SDK identity before sending a request. Reloads do not extend the session lifetime. Expiration and logout remove this key and sign out of Firebase. See [the Story 4 breakdown](docs/story-4.md) for branches and task scope.
+
+If account creation succeeds but saving its display name fails, registration rolls back only that newly created account so the user can retry. If Firebase rejects the rollback too, the error explains that the account already exists and offers login as the recovery path.
+
 ## Quality checks
 
 ```bash
@@ -22,12 +34,16 @@ npm run typecheck
 npm run lint
 npm run format:check
 npm run validate
+npm test
+npm run test:coverage
 ```
 
 ESLint uses strict, type-aware TypeScript rules and the Unicorn recommended
 configuration. Prettier controls formatting. Husky validates commit messages
 against the RS School Conventional Commits format and prevents pushes when lint
 or formatting checks fail.
+
+Tests use Vitest, jsdom, mocked Firebase and HTTP responses. Coverage includes every source TypeScript file, with no source exclusions; `npm run test:coverage` enforces 80% aggregate statement coverage and writes an HTML report to `coverage/index.html`.
 
 ## Design system
 

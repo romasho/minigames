@@ -8,6 +8,16 @@ import {
   type FieldDefinition,
 } from './auth/auth-types';
 import { lockScroll, unlockScroll } from '../../utils/scroll-lock';
+import { validateAuth, type AuthValues } from '../../features/auth/validation';
+import { createSession, getSession } from '../../features/auth/session';
+import {
+  login,
+  register,
+  loginGoogle,
+  authError,
+} from '../../services/firebase';
+import type { Profile } from '../../features/auth/profile';
+import { notify } from '../feedback';
 
 export { AuthMode, type AuthDialogController } from './auth/auth-types';
 
@@ -60,6 +70,7 @@ export function createAuthDialog(): AuthDialogController {
   description.className = 'auth-dialog__description';
   const form: HTMLFormElement = document.createElement('form');
   form.className = 'auth-dialog__form';
+  form.noValidate = true;
 
   const fields: HTMLDivElement = document.createElement('div');
   fields.className = 'auth-dialog__fields';
@@ -106,13 +117,86 @@ export function createAuthDialog(): AuthDialogController {
   dialog.append(surface);
 
   let activeMode: AuthMode = AuthMode.Login;
-  let switchVersion: number;
-  switchVersion = 0;
   let closeTimer: number | undefined;
-  let submitTimer: number | undefined;
+  let isPending: boolean;
+  isPending = false;
+  let authAttempt: number;
+  authAttempt = 0;
   let previouslyFocused: HTMLElement | null = null;
   const eventController: AbortController = new AbortController();
   const { signal }: AbortController = eventController;
+
+  const values: () => AuthValues = (): AuthValues =>
+    Object.fromEntries(
+      [...form.querySelectorAll('input')].map(
+        (input: HTMLInputElement): [string, string] => [
+          input.name,
+          input.value,
+        ],
+      ),
+    );
+  const isFormValid: (shouldShow: boolean) => boolean = (
+    shouldShow: boolean,
+  ): boolean => {
+    const errors: AuthValues = validateAuth(
+      values(),
+      activeMode === AuthMode.Register,
+    );
+    for (const input of form.querySelectorAll('input')) {
+      const message: string = errors[input.name] ?? '';
+      const output: HTMLElement | null = fields.querySelector(
+        `#auth-error-${input.name}`,
+      );
+      if (shouldShow && output) output.textContent = message;
+      input.setAttribute(
+        'aria-invalid',
+        String(shouldShow && Boolean(message)),
+      );
+    }
+    submitButton.disabled = isPending || Object.keys(errors).length > 0;
+    return Object.keys(errors).length === 0;
+  };
+  const setPending: (isBusy: boolean) => void = (isBusy: boolean): void => {
+    isPending = isBusy;
+    dialog.setAttribute('aria-busy', String(isBusy));
+    for (const control of dialog.querySelectorAll('button, input')) {
+      if (
+        control instanceof HTMLButtonElement ||
+        control instanceof HTMLInputElement
+      )
+        control.disabled = isBusy;
+    }
+    submitButton.textContent = isBusy
+      ? 'Signing in…'
+      : activeMode === AuthMode.Login
+        ? 'Login'
+        : 'Create Account';
+    isFormValid(false);
+  };
+  const authenticate: (
+    operation: () => Promise<Profile>,
+  ) => Promise<void> = async (
+    operation: () => Promise<Profile>,
+  ): Promise<void> => {
+    if (isPending) return;
+    const attempt: number = ++authAttempt;
+    setPending(true);
+    setStatus('Signing in…');
+    try {
+      const profile: Profile = await operation();
+      if (attempt !== authAttempt || signal.aborted) return;
+      createSession(profile);
+      setPending(false);
+      dialog.close();
+      notify('You are signed in.', 'success');
+    } catch (error: unknown) {
+      if (attempt !== authAttempt || signal.aborted) return;
+      setPending(false);
+      const message: string = authError(error);
+      setStatus(message, true);
+      notify(message, 'error', dialog);
+    }
+  };
 
   const setStatus: (message?: string, isError?: boolean) => void = (
     message?: string,
@@ -170,52 +254,29 @@ export function createAuthDialog(): AuthDialogController {
       { signal },
     );
     alternateAction.replaceChildren(alternateText, alternateButton);
+    isFormValid(false);
   };
 
   const switchMode: (mode: AuthMode) => void = (mode: AuthMode): void => {
-    if (mode === activeMode) return;
+    if (isPending || mode === activeMode) return;
     dialog.dispatchEvent(
       new CustomEvent('auth-mode-change', { bubbles: true, detail: { mode } }),
     );
-    const version: number = ++switchVersion;
     for (const animation of panel.getAnimations()) animation.cancel();
-    if (shouldReduceMotion()) {
-      render(mode);
-      return;
-    }
-    const outAnimation: Animation = panel.animate(
+    render(mode);
+    if (shouldReduceMotion()) return;
+    panel.animate(
       [
-        { opacity: 1, transform: 'translateX(0)' },
         {
           opacity: 0,
           transform:
             mode === AuthMode.Register
-              ? 'translateX(-14px)'
-              : 'translateX(14px)',
+              ? 'translateX(14px)'
+              : 'translateX(-14px)',
         },
+        { opacity: 1, transform: 'translateX(0)' },
       ],
-      { duration: 110, easing: 'ease-in', fill: 'forwards' },
-    );
-    outAnimation.addEventListener(
-      'finish',
-      (): void => {
-        if (version !== switchVersion) return;
-        render(mode);
-        panel.animate(
-          [
-            {
-              opacity: 0,
-              transform:
-                mode === AuthMode.Register
-                  ? 'translateX(14px)'
-                  : 'translateX(-14px)',
-            },
-            { opacity: 1, transform: 'translateX(0)' },
-          ],
-          { duration: 180, easing: 'ease-out', fill: 'both' },
-        );
-      },
-      { once: true },
+      { duration: 180, easing: 'ease-out', fill: 'both' },
     );
   };
 
@@ -225,7 +286,8 @@ export function createAuthDialog(): AuthDialogController {
   };
 
   const requestClose: () => void = (): void => {
-    if (!dialog.open || dialog.classList.contains('is-closing')) return;
+    if (isPending || !dialog.open || dialog.classList.contains('is-closing'))
+      return;
     dialog.classList.add('is-closing');
     dialog.classList.remove('is-visible');
     closeTimer = setTimeout(finishClose, 300);
@@ -288,34 +350,17 @@ export function createAuthDialog(): AuthDialogController {
     'submit',
     (event: SubmitEvent): void => {
       event.preventDefault();
-      const passwordField: Element | RadioNodeList | null =
-        form.elements.namedItem('password');
-      const confirmationField: Element | RadioNodeList | null =
-        form.elements.namedItem('confirm-password');
-      const arePasswordsDifferent: boolean =
-        activeMode === AuthMode.Register &&
-        passwordField instanceof HTMLInputElement &&
-        confirmationField instanceof HTMLInputElement &&
-        passwordField.value !== confirmationField.value;
-      if (arePasswordsDifferent) {
-        if (confirmationField instanceof HTMLInputElement) {
-          confirmationField.setCustomValidity('Passwords do not match.');
-          confirmationField.reportValidity();
-        }
-        setStatus('Passwords do not match. Please check both fields.', true);
-        return;
-      }
-
-      setStatus(
+      if (isPending || !isFormValid(true)) return;
+      const data: AuthValues = values();
+      void authenticate((): Promise<Profile> =>
         activeMode === AuthMode.Login
-          ? 'You are signed in to this demo.'
-          : 'Your demo account has been created.',
+          ? login(data.email?.trim() ?? '', data.password ?? '')
+          : register(
+              data.email?.trim() ?? '',
+              data.password ?? '',
+              data.username ?? '',
+            ),
       );
-      submitButton.disabled = true;
-      submitTimer = setTimeout((): void => {
-        submitButton.disabled = false;
-        requestClose();
-      }, 700);
     },
     { signal },
   );
@@ -323,7 +368,7 @@ export function createAuthDialog(): AuthDialogController {
     'input',
     (event: Event): void => {
       if (!(event.target instanceof HTMLInputElement)) return;
-      event.target.setCustomValidity('');
+      isFormValid(true);
       setStatus();
     },
     { signal },
@@ -335,16 +380,31 @@ export function createAuthDialog(): AuthDialogController {
     },
     { signal },
   );
-  googleButton.disabled = true;
-  googleButton.title =
-    'Google sign-in requires a server-side OAuth integration.';
+  form.addEventListener(
+    'focusout',
+    (): void => {
+      isFormValid(true);
+    },
+    { signal },
+  );
+  googleButton.addEventListener(
+    'click',
+    (): void => {
+      void authenticate(loginGoogle);
+    },
+    { signal },
+  );
 
   render(AuthMode.Login);
 
   return {
     element: dialog,
     open(mode: AuthMode): void {
-      ++switchVersion;
+      if (getSession()) {
+        notify('You are already signed in.', 'success');
+        return;
+      }
+      if (isPending || (mode === activeMode && dialog.open)) return;
       for (const animation of panel.getAnimations()) animation.cancel();
       render(mode);
 
@@ -366,14 +426,19 @@ export function createAuthDialog(): AuthDialogController {
       });
     },
     close(): void {
-      requestClose();
+      if (isPending && !getSession()) return;
+      if (isPending) {
+        // Another tab completed sign-in. Ignore this form's stale completion.
+        authAttempt++;
+        setPending(false);
+      }
+      finishClose();
     },
     setMode(mode: AuthMode): void {
       switchMode(mode);
     },
     destroy(): void {
       clearTimeout(closeTimer);
-      clearTimeout(submitTimer);
       eventController.abort();
       for (const animation of panel.getAnimations()) animation.cancel();
       unlockScroll('authentication');
