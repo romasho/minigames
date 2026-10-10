@@ -1,6 +1,11 @@
-import { logoutFirebase } from '../../services/firebase';
+import {
+  getFirebaseIdentity,
+  logoutFirebase,
+  subscribeFirebaseIdentity,
+} from '../../services/firebase';
 import { notify } from '../../components/feedback';
 import type { Profile } from './profile';
+import { isValidEmail } from './validation';
 
 export const SESSION_KEY: string = [
   'minigames',
@@ -27,7 +32,7 @@ export function parseSession(raw: string, now: number): AppSession | null {
       typeof value.displayName !== 'string' ||
       !('email' in value) ||
       typeof value.email !== 'string' ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email) ||
+      !isValidEmail(value.email) ||
       !('authenticatedAt' in value) ||
       typeof value.authenticatedAt !== 'number' ||
       !Number.isFinite(value.authenticatedAt) ||
@@ -91,18 +96,33 @@ export function getSession(): AppSession | null {
       );
     return null;
   }
-  if (JSON.stringify(restored) !== JSON.stringify(state.active)) {
-    state.active = restored;
+  const identity: Profile | null | undefined = getFirebaseIdentity();
+  if (identity?.email !== restored.email) {
+    // Storage may arrive before Firebase's cross-tab identity notification.
+    // Keep the candidate while restoring, but never expose it as signed in.
+    if (state.active) {
+      state.active = null;
+      publish();
+    }
+    return null;
+  }
+  const verified: AppSession = {
+    ...identity,
+    authenticatedAt: restored.authenticatedAt,
+  };
+  if (JSON.stringify(verified) !== JSON.stringify(state.active)) {
+    state.active = verified;
     publish();
   }
   return state.active;
 }
 
 export function createSession(profile: Profile): void {
+  const identity: Profile | null | undefined = getFirebaseIdentity();
+  if (identity?.email !== profile.email)
+    throw new Error('Please sign in to continue.');
   const session: AppSession = {
-    displayName: profile.displayName,
-    email: profile.email,
-    ...(profile.avatarUrl && { avatarUrl: profile.avatarUrl }),
+    ...identity,
     authenticatedAt: Date.now(),
   };
   try {
@@ -122,18 +142,22 @@ export function subscribeSession(listener: Listener): () => void {
   };
 }
 
+function checkSession(): void {
+  getSession();
+}
+
 export function startSession(): () => void {
-  if (!getSession()) endSession();
-  const check: () => void = (): void => {
-    getSession();
-  };
-  window.addEventListener('focus', check);
-  document.addEventListener('visibilitychange', check);
-  addEventListener('storage', check);
+  const unsubscribeIdentity: () => void =
+    subscribeFirebaseIdentity(checkSession);
+  checkSession();
+  window.addEventListener('focus', checkSession);
+  document.addEventListener('visibilitychange', checkSession);
+  addEventListener('storage', checkSession);
   return (): void => {
+    unsubscribeIdentity();
     clearTimeout(state.timer);
-    window.removeEventListener('focus', check);
-    document.removeEventListener('visibilitychange', check);
-    removeEventListener('storage', check);
+    window.removeEventListener('focus', checkSession);
+    document.removeEventListener('visibilitychange', checkSession);
+    removeEventListener('storage', checkSession);
   };
 }

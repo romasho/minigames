@@ -32,12 +32,13 @@ export interface GameDetailsDialogController {
   refresh(): void;
 }
 
-const icons: Record<'heart' | 'star' | 'trophy' | 'close', string> = {
+const icons: Record<'heart' | 'star' | 'trophy' | 'send' | 'close', string> = {
   heart:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3.1 6.3 7 1-5 4.9 1.2 6.9L12 17.8l-6.3 3.3 1.2-6.9-5-4.9 7-1L12 2Z"/></svg>',
   trophy:
     '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h10v3h4v3c0 3.1-2 5.3-5.1 5.6A6 6 0 0 1 13 16v3h4v3H7v-3h4v-3a6 6 0 0 1-2.9-2.4C5 13.3 3 11.1 3 8V5h4V2Zm0 5H5v1c0 1.5.7 2.7 2.1 3.2A6 6 0 0 1 7 10V7Zm10 0v3c0 .4 0 .8-.1 1.2C18.3 10.7 19 9.5 19 8V7h-2Z"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 4 16 8-16 8 3-8-3-8Zm3 8h13"/></svg>',
   close:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg>',
 };
@@ -272,7 +273,8 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     const send: HTMLButtonElement = document.createElement('button');
     send.type = 'submit';
     send.className = 'game-details__send';
-    send.textContent = 'Send';
+    send.setAttribute('aria-label', 'Send comment');
+    send.innerHTML = icons.send;
     send.disabled = true;
     const resize: () => void = (): void => {
       input.style.height = 'auto';

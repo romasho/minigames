@@ -4,7 +4,7 @@ A collection of small, lightweight games.
 
 ## Getting started
 
-Requirements: Node.js 20.19 or newer.
+Requirements: Node.js 22.13+ (22.x) or 24+. GitHub Actions uses Node.js 24; use it locally for consistency.
 
 ```bash
 npm install
@@ -21,7 +21,11 @@ Create a Firebase project in the [Firebase Console](https://console.firebase.goo
 
 In Authentication → Sign-in method, enable Email/Password and Google (choose a support email). Add `localhost`, `127.0.0.1` (when using that development URL) and your deployed hostname under Authentication → Settings → Authorized domains. Restart Vite after changing environment variables. Production builds need the same variables at build time.
 
-The SDK establishes identity; the UI uses a separate five-minute app session stored as `minigames:sholomickiyr:app-session`. It contains only `displayName`, `email`, `authenticatedAt` and optional `avatarUrl`. Reloads do not extend its lifetime. Expiration and logout remove this key and sign out of Firebase. See [the Story 4 breakdown](docs/story-4.md) for branches and task scope.
+For GitHub Pages, set these four repository Actions variables (or secrets) under Settings → Secrets and variables → Actions: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID` and `VITE_FIREBASE_APP_ID`. Use the same Web app configuration as `.env.local`. Repository variables take precedence over secrets of the same name. The deployment workflow passes them to Vite and stops before publishing if any is missing; local `.env.local` files are not uploaded to the runner.
+
+The SDK establishes identity; the UI uses a separate five-minute app session stored as `minigames:sholomickiyr:app-session`. It contains only `displayName`, `email`, `authenticatedAt` and optional `avatarUrl`. The stored profile is accepted only after Firebase finishes restoring the same account; the displayed name/avatar come from Firebase, and protected mutations validate the SDK identity before sending a request. Reloads do not extend the session lifetime. Expiration and logout remove this key and sign out of Firebase. See [the Story 4 breakdown](docs/story-4.md) for branches and task scope.
+
+If account creation succeeds but saving its display name fails, registration rolls back only that newly created account so the user can retry. If Firebase rejects the rollback too, the error explains that the account already exists and offers login as the recovery path.
 
 ## Quality checks
 

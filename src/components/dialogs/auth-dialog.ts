@@ -120,6 +120,8 @@ export function createAuthDialog(): AuthDialogController {
   let closeTimer: number | undefined;
   let isPending: boolean;
   isPending = false;
+  let authAttempt: number;
+  authAttempt = 0;
   let previouslyFocused: HTMLElement | null = null;
   const eventController: AbortController = new AbortController();
   const { signal }: AbortController = eventController;
@@ -177,17 +179,18 @@ export function createAuthDialog(): AuthDialogController {
     operation: () => Promise<Profile>,
   ): Promise<void> => {
     if (isPending) return;
+    const attempt: number = ++authAttempt;
     setPending(true);
     setStatus('Signing in…');
     try {
       const profile: Profile = await operation();
-      if (signal.aborted) return;
+      if (attempt !== authAttempt || signal.aborted) return;
       createSession(profile);
       setPending(false);
       dialog.close();
       notify('You are signed in.', 'success');
     } catch (error: unknown) {
-      if (signal.aborted) return;
+      if (attempt !== authAttempt || signal.aborted) return;
       setPending(false);
       const message: string = authError(error);
       setStatus(message, true);
@@ -423,7 +426,13 @@ export function createAuthDialog(): AuthDialogController {
       });
     },
     close(): void {
-      if (!isPending) finishClose();
+      if (isPending && !getSession()) return;
+      if (isPending) {
+        // Another tab completed sign-in. Ignore this form's stale completion.
+        authAttempt++;
+        setPending(false);
+      }
+      finishClose();
     },
     setMode(mode: AuthMode): void {
       switchMode(mode);

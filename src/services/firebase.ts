@@ -6,6 +6,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   updateProfile,
+  deleteUser,
+  onAuthStateChanged,
   signOut,
   type Auth,
   type User,
@@ -13,7 +15,7 @@ import {
 } from 'firebase/auth';
 import type { Profile } from '../features/auth/profile';
 
-const sdk: { auth?: Auth } = {};
+const sdk: { auth?: Auth; ready: boolean } = { ready: false };
 function firebaseAuth(): Auth {
   if (sdk.auth) return sdk.auth;
   const options: FirebaseOptions = {
@@ -44,12 +46,61 @@ function toProfile(user: User): Profile {
   };
 }
 
+// Undefined means Firebase has not finished restoring its persisted identity.
+export function getFirebaseIdentity(): Profile | null | undefined {
+  if (!sdk.ready) return undefined;
+  const user: User | null = sdk.auth?.currentUser ?? null;
+  return user?.email ? toProfile(user) : null;
+}
+
+export function subscribeFirebaseIdentity(listener: () => void): () => void {
+  try {
+    return onAuthStateChanged(firebaseAuth(), (): void => {
+      sdk.ready = true;
+      listener();
+    });
+  } catch {
+    // Configuration failure must still leave the public app usable.
+    sdk.ready = true;
+    queueMicrotask(listener);
+    return noop;
+  }
+}
+
+function noop(): void {
+  // No SDK subscription exists when configuration is unavailable.
+}
+
+export async function hasValidFirebaseIdentity(
+  email: string,
+): Promise<boolean> {
+  const auth: Auth = firebaseAuth();
+  await auth.authStateReady();
+  sdk.ready = true;
+  const user: User | null = auth.currentUser;
+  if (user?.email !== email) return false;
+  // Firebase refreshes expired tokens. Never send a mutation after sign-out or
+  // an account change that happened while this asynchronous check was pending.
+  await user.getIdToken();
+  return auth.currentUser === user && user.email === email;
+}
+
+class RegistrationRecoveryError extends Error {
+  constructor(cause: unknown) {
+    super(
+      'Your account was created, but its name could not be saved or the account removed. Try logging in with the same email and password.',
+      { cause },
+    );
+  }
+}
+
 export async function login(email: string, password: string): Promise<Profile> {
   const result: UserCredential = await signInWithEmailAndPassword(
     firebaseAuth(),
     email,
     password,
   );
+  sdk.ready = true;
   return toProfile(result.user);
 }
 export async function register(
@@ -65,9 +116,20 @@ export async function register(
   const user: User = result.user;
   try {
     await updateProfile(user, { displayName: username });
+    sdk.ready = true;
     return { ...toProfile(user), displayName: username };
   } catch (error: unknown) {
-    await signOut(firebaseAuth());
+    try {
+      // Only roll back the account created by this registration attempt.
+      await deleteUser(user);
+    } catch {
+      try {
+        if (firebaseAuth().currentUser === user) await signOut(firebaseAuth());
+      } catch {
+        // Preserve the actionable registration error if sign-out also fails.
+      }
+      throw new RegistrationRecoveryError(error);
+    }
     throw error;
   }
 }
@@ -76,6 +138,7 @@ export async function loginGoogle(): Promise<Profile> {
     firebaseAuth(),
     new GoogleAuthProvider(),
   );
+  sdk.ready = true;
   return toProfile(result.user);
 }
 export async function logoutFirebase(): Promise<void> {
@@ -85,6 +148,7 @@ export async function logoutFirebase(): Promise<void> {
 }
 
 export function authError(error: unknown): string {
+  if (error instanceof RegistrationRecoveryError) return error.message;
   const code: unknown =
     typeof error === 'object' && error !== null && 'code' in error
       ? error.code

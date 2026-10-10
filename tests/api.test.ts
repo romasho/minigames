@@ -1,3 +1,8 @@
+import {
+  firebaseMock,
+  resetFirebaseMock,
+  setFirebaseIdentity,
+} from './firebase-mock';
 import { it, expect, vi, beforeEach } from 'vitest';
 import * as api from '../src/services/api';
 import {
@@ -15,10 +20,12 @@ import {
   publicResponse,
 } from './fixtures';
 
-vi.mock('../src/services/firebase', () => ({
-  logoutFirebase: vi.fn().mockResolvedValue(undefined),
-}));
+vi.mock('../src/services/firebase', async () => {
+  const { firebaseMock } = await import('./firebase-mock');
+  return firebaseMock;
+});
 beforeEach(() => {
+  resetFirebaseMock();
   endSession();
   vi.stubGlobal(
     'fetch',
@@ -112,6 +119,7 @@ it('never sends protected requests in Guest Mode or after expiration', async () 
   await expect(api.submitComment('slug', 'hi')).rejects.toBeInstanceOf(
     api.SessionRequiredError,
   );
+  setFirebaseIdentity(profile);
   createSession(profile);
   localStorage.setItem(
     SESSION_KEY,
@@ -126,7 +134,74 @@ it('never sends protected requests in Guest Mode or after expiration', async () 
   expect(fetch).not.toHaveBeenCalled();
 });
 
+it('rechecks the provider identity before every protected operation', async () => {
+  setFirebaseIdentity(profile);
+  createSession(profile);
+  firebaseMock.hasValidFirebaseIdentity.mockResolvedValue(false);
+  for (const operation of [
+    () => api.toggleFavorite('slug'),
+    () => api.toggleCommentLike('comment'),
+    () => api.submitComment('slug', 'Hello'),
+  ]) {
+    await expect(operation()).rejects.toBeInstanceOf(api.SessionRequiredError);
+  }
+  expect(fetch).not.toHaveBeenCalled();
+  expect(firebaseMock.hasValidFirebaseIdentity).toHaveBeenCalledTimes(3);
+});
+
+it.each(['logout', 'account-change', 'expiration', 'timestamp-change'])(
+  'does not POST after %s during an identity check',
+  async (change) => {
+    setFirebaseIdentity(profile);
+    createSession(profile);
+    let confirmIdentity: (valid: boolean) => void = () => {};
+    firebaseMock.hasValidFirebaseIdentity.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          confirmIdentity = resolve;
+        }),
+    );
+    const mutation = api.toggleFavorite('slug');
+    if (change === 'logout') endSession();
+    if (change === 'account-change')
+      setFirebaseIdentity({ ...profile, email: 'other@example.com' });
+    if (change === 'expiration')
+      vi.setSystemTime(Date.now() + SESSION_LIFETIME);
+    if (change === 'timestamp-change')
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ ...profile, authenticatedAt: Date.now() - 1 }),
+      );
+    confirmIdentity(true);
+    await expect(mutation).rejects.toBeInstanceOf(api.SessionRequiredError);
+    expect(fetch).not.toHaveBeenCalled();
+  },
+);
+
+it('blocks a mutation when Firebase cannot validate its token', async () => {
+  setFirebaseIdentity(profile);
+  createSession(profile);
+  firebaseMock.hasValidFirebaseIdentity.mockRejectedValueOnce(
+    new Error('Token expired'),
+  );
+  await expect(api.toggleFavorite('slug')).rejects.toThrow('Token expired');
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+it('checks guest mode at fetch time even if logout is queued after identity validation', async () => {
+  setFirebaseIdentity(profile);
+  createSession(profile);
+  const check = Promise.resolve(true);
+  firebaseMock.hasValidFirebaseIdentity.mockReturnValueOnce(check);
+  const mutation = api.toggleFavorite('slug');
+  // This callback runs after the token continuation, before the POST continuation.
+  void check.then(() => endSession());
+  await expect(mutation).rejects.toBeInstanceOf(api.SessionRequiredError);
+  expect(fetch).not.toHaveBeenCalled();
+});
+
 it('uses session identity and returns server-confirmed toggle values', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   vi.mocked(fetch).mockResolvedValueOnce(
     response({ data: { isFavorited: true, likesCount: 41 } }),
@@ -156,6 +231,7 @@ it('uses session identity and returns server-confirmed toggle values', async () 
 });
 
 it('validates and trims comments and uses bounded profile display names', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   await expect(api.submitComment('slug', '  ')).rejects.toThrow('1–500');
   await expect(api.submitComment('slug', 'x'.repeat(501))).rejects.toThrow(
@@ -177,6 +253,7 @@ it('validates and trims comments and uses bounded profile display names', async 
 });
 
 it('does not retry ambiguous requests and rejects malformed mutation replies', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   vi.mocked(fetch).mockRejectedValueOnce(new TypeError('offline'));
   await expect(api.toggleFavorite('slug')).rejects.toThrow('offline');

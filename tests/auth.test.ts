@@ -1,3 +1,4 @@
+import { resetFirebaseMock, setFirebaseIdentity } from './firebase-mock';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { validateAuth } from '../src/features/auth/validation';
 import {
@@ -29,20 +30,48 @@ import {
 import { fill, required, settle } from './setup';
 import { profile } from './fixtures';
 
-vi.mock('../src/services/firebase', () => ({
-  login: vi.fn(),
-  register: vi.fn(),
-  loginGoogle: vi.fn(),
-  logoutFirebase: vi.fn().mockResolvedValue(undefined),
-  authError: () => 'Sign-in failed',
-}));
+vi.mock('../src/services/firebase', async () => {
+  const { firebaseMock } = await import('./firebase-mock');
+  return firebaseMock;
+});
 
 beforeEach(() => {
+  resetFirebaseMock();
   endSession();
   vi.mocked(logoutFirebase).mockResolvedValue(undefined);
 });
 
 describe('validation and profiles', () => {
+  it.each([
+    'qa@example..com',
+    'qa@.example.com',
+    'qa@example.com.',
+    'qa@-example.com',
+    'qa@example-.com',
+    'qa@localhost',
+    'qa..test@example.com',
+    '.qa@example.com',
+    'qa.@example.com',
+    `qa@${'a'.repeat(64)}.com`,
+    `${'a'.repeat(65)}@example.com`,
+    `qa@${'a'.repeat(63)}.${'b'.repeat(63)}.${'c'.repeat(63)}.${'d'.repeat(63)}.com`,
+  ])('rejects malformed email %s in both forms', (email) => {
+    expect(validateAuth({ email, password: 'Cozy1!' }, false)).toHaveProperty(
+      'email',
+    );
+    expect(validateAuth({ email, password: 'Cozy1!' }, true)).toHaveProperty(
+      'email',
+    );
+  });
+  it.each([
+    'qa+test@mail.example.com',
+    'qa.test@example.com',
+    'qa@my-domain.com',
+  ])('accepts ordinary email %s', (email) => {
+    expect(
+      validateAuth({ email, password: 'Cozy1!' }, false),
+    ).not.toHaveProperty('email');
+  });
   it('validates login without registration strength rules', () => {
     expect(
       validateAuth({ email: 'x@y.com', password: 'abcdef' }, false),
@@ -124,6 +153,7 @@ describe('validation and profiles', () => {
     expect(element.querySelector('b')).toBeNull();
     required(element, 'img').dispatchEvent(new Event('error'));
     expect(element.querySelector('img')).toBeNull();
+    setFirebaseIdentity(profile);
     createSession(profile);
     required<HTMLButtonElement>(element, 'button').click();
     expect(getSession()).toBeNull();
@@ -131,10 +161,66 @@ describe('validation and profiles', () => {
 });
 
 describe('fixed app session', () => {
+  it('requires a Firebase identity before creating a session', () => {
+    expect(() => createSession(profile)).toThrow('sign in');
+    setFirebaseIdentity({ ...profile, email: 'other@example.com' });
+    expect(() => createSession(profile)).toThrow('sign in');
+    expect(localStorage.getItem(SESSION_KEY)).toBeNull();
+  });
+  it('preserves a valid stored session during SDK restoration and uses only the SDK profile', () => {
+    setFirebaseIdentity(undefined);
+    const authenticatedAt = Date.now() - 12_000;
+    const raw = JSON.stringify({
+      ...profile,
+      displayName: 'Forged name',
+      avatarUrl: 'https://attacker.example/photo.jpg',
+      authenticatedAt,
+    });
+    localStorage.setItem(SESSION_KEY, raw);
+    const signOutCalls = vi.mocked(logoutFirebase).mock.calls.length;
+    const stop = startSession();
+    expect(getSession()).toBeNull();
+    expect(localStorage.getItem(SESSION_KEY)).toBe(raw);
+    expect(logoutFirebase).toHaveBeenCalledTimes(signOutCalls);
+    setFirebaseIdentity(profile);
+    expect(getSession()).toEqual({ ...profile, authenticatedAt });
+    stop();
+  });
+  it('never restores storage belonging to a different SDK identity', () => {
+    setFirebaseIdentity({ ...profile, email: 'other@example.com' });
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ ...profile, authenticatedAt: Date.now() }),
+    );
+    const stop = startSession();
+    expect(getSession()).toBeNull();
+    stop();
+  });
+  it('publishes SDK sign-out immediately even before the app storage event arrives', () => {
+    setFirebaseIdentity(profile);
+    createSession(profile);
+    const stop = startSession();
+    const listener = vi.fn();
+    const unsubscribe = subscribeSession(listener);
+    setFirebaseIdentity(null);
+    expect(getSession()).toBeNull();
+    expect(listener).toHaveBeenLastCalledWith(null);
+    unsubscribe();
+    stop();
+  });
+  it('keeps guest mode and reports a storage failure after successful provider login', () => {
+    setFirebaseIdentity(profile);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new Error('blocked');
+    });
+    expect(() => createSession(profile)).toThrow('Browser storage');
+    expect(getSession()).toBeNull();
+  });
   it('restores exactly the original timestamp and expires once', async () => {
     const listener = vi.fn();
     const unsubscribe = subscribeSession(listener);
     localStorage.setItem('unrelated', 'keep');
+    setFirebaseIdentity(profile);
     createSession(profile);
     const original = getSession();
     expect(original?.authenticatedAt).toBe(Date.now());
@@ -173,7 +259,9 @@ describe('fixed app session', () => {
         Date.now(),
       ),
     ).toBeNull();
-    createSession({ ...profile, avatarUrl: 'https://example.com/me.jpg' });
+    const withAvatar = { ...profile, avatarUrl: 'https://example.com/me.jpg' };
+    setFirebaseIdentity(withAvatar);
+    createSession(withAvatar);
     const stop = startSession();
     expect(getSession()?.avatarUrl).toContain('me.jpg');
     localStorage.setItem(
@@ -190,6 +278,7 @@ describe('fixed app session', () => {
     stop();
   });
   it('keeps Guest Mode if Firebase sign-out fails', async () => {
+    setFirebaseIdentity(profile);
     createSession(profile);
     vi.mocked(logoutFirebase).mockRejectedValueOnce(new Error('offline'));
     endSession();
@@ -289,6 +378,7 @@ describe('Auth dialog', () => {
     dialog.setMode(AuthMode.Register);
     expect(dialog.element.open).toBe(true);
     expect(login).toHaveBeenCalledWith(profile.email, 'abcdef');
+    setFirebaseIdentity(profile);
     resolveLogin(profile);
     await settle(0);
     expect(dialog.element.open).toBe(false);
@@ -298,7 +388,10 @@ describe('Auth dialog', () => {
   it('recovers from errors and registers the submitted display name', async () => {
     vi.mocked(register)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce(profile);
+      .mockImplementationOnce(async () => {
+        setFirebaseIdentity(profile);
+        return profile;
+      });
     const dialog = createAuthDialog();
     document.body.append(dialog.element);
     dialog.open(AuthMode.Register);
@@ -323,7 +416,10 @@ describe('Auth dialog', () => {
   it('recovers from Google cancellation, supports retry and guards authenticated opening', async () => {
     vi.mocked(loginGoogle)
       .mockRejectedValueOnce(new Error('cancel'))
-      .mockResolvedValueOnce(profile);
+      .mockImplementationOnce(async () => {
+        setFirebaseIdentity(profile);
+        return profile;
+      });
     const dialog = createAuthDialog();
     document.body.append(dialog.element);
     dialog.open(AuthMode.Login);

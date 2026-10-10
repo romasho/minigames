@@ -9,6 +9,9 @@ export function createProfile(profile: Profile): HTMLElement {
   const element: HTMLDivElement = document.createElement('div');
   element.className = 'app-header__profile';
   const name: string = profileName(profile);
+  element.setAttribute('role', 'group');
+  element.setAttribute('aria-label', `Signed in as ${name}`);
+  element.title = name;
   const avatar: HTMLSpanElement = document.createElement('span');
   avatar.className = 'app-header__avatar';
   avatar.textContent = profileInitials(name);
@@ -27,6 +30,7 @@ export function createProfile(profile: Profile): HTMLElement {
     avatar.append(image);
   }
   const label: HTMLSpanElement = document.createElement('span');
+  label.className = 'app-header__profile-name';
   label.textContent = name;
   const logout: HTMLButtonElement = document.createElement('button');
   logout.type = 'button';

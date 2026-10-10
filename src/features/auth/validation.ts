@@ -1,11 +1,29 @@
 export type AuthValues = Record<string, string>;
 
+export function isValidEmail(value: string): boolean {
+  const email: string = value.trim();
+  const separator: number = email.lastIndexOf('@');
+  if (separator < 1 || email.length > 254) return false;
+  const localPart: string = email.slice(0, separator);
+  const labels: string[] = email.slice(separator + 1).split('.');
+  return (
+    localPart.length <= 64 &&
+    /^[A-Za-z\d!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z\d!#$%&'*+/=?^_`{|}~-]+)*$/.test(
+      localPart,
+    ) &&
+    labels.length >= 2 &&
+    labels.every((label: string): boolean =>
+      /^[A-Za-z\d](?:[A-Za-z\d-]{0,61}[A-Za-z\d])?$/.test(label),
+    )
+  );
+}
+
 export function validateAuth(
   values: AuthValues,
   isRegistration: boolean,
 ): AuthValues {
   const errors: AuthValues = {
-    ...(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email?.trim() ?? '') && {
+    ...(!isValidEmail(values.email ?? '') && {
       email: 'Enter a valid email address.',
     }),
   };

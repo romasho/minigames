@@ -123,6 +123,7 @@ export function startApp(): void {
   });
 
   const unsubscribeSession: () => void = subscribeSession((): void => {
+    syncDialogs();
     gameDetails.refresh();
   });
 

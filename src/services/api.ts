@@ -251,10 +251,25 @@ export function requireSession(): AppSession {
   return session;
 }
 
+async function requireVerifiedSession(): Promise<AppSession> {
+  const session: AppSession = requireSession();
+  if (!(await hasValidFirebaseIdentity(session.email)))
+    throw new SessionRequiredError();
+  return session;
+}
+
 async function post(
   path: string,
   body: Record<string, string>,
+  session: AppSession,
 ): Promise<unknown> {
+  // Check after every awaited identity step, immediately before fetch.
+  const current: AppSession = requireSession();
+  if (
+    current.email !== session.email ||
+    current.authenticatedAt !== session.authenticatedAt
+  )
+    throw new SessionRequiredError();
   const response: Response = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -277,10 +292,11 @@ export interface LikeResult {
   likesCount: number;
 }
 export async function toggleFavorite(slug: string): Promise<FavoriteResult> {
-  const session: AppSession = requireSession();
+  const session: AppSession = await requireVerifiedSession();
   const value: unknown = await post(
     `/api/games/${encodeURIComponent(slug)}/favorite`,
     { userEmail: session.email },
+    session,
   );
   if (
     !hasFields(value, [], ['likesCount']) ||
@@ -295,10 +311,11 @@ export async function toggleFavorite(slug: string): Promise<FavoriteResult> {
 export async function toggleCommentLike(
   commentId: string,
 ): Promise<LikeResult> {
-  const session: AppSession = requireSession();
+  const session: AppSession = await requireVerifiedSession();
   const value: unknown = await post(
     `/api/comments/${encodeURIComponent(commentId)}/like`,
     { userEmail: session.email },
+    session,
   );
   if (
     !hasFields(value, [], ['likesCount']) ||
@@ -314,7 +331,7 @@ export async function submitComment(
   slug: string,
   text: string,
 ): Promise<GameComment> {
-  const session: AppSession = requireSession();
+  const session: AppSession = await requireVerifiedSession();
   const trimmed: string = text.trim();
   if (!trimmed || trimmed.length > 500)
     throw new Error('Use 1–500 characters.');
@@ -325,9 +342,11 @@ export async function submitComment(
       authorName: commentAuthor(session),
       text: trimmed,
     },
+    session,
   );
   if (!isComment(value)) throw new Error('Invalid comment response');
   return value;
 }
 import { getSession, type AppSession } from '../features/auth/session';
 import { commentAuthor } from '../features/auth/profile';
+import { hasValidFirebaseIdentity } from './firebase';

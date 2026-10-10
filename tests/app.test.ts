@@ -1,3 +1,4 @@
+import { resetFirebaseMock, setFirebaseIdentity } from './firebase-mock';
 import { it, expect, vi, beforeEach } from 'vitest';
 import { startApp } from '../src/app';
 import {
@@ -11,14 +12,12 @@ import { login, logoutFirebase } from '../src/services/firebase';
 import { publicResponse, profile } from './fixtures';
 import { required, fill, settle, setMedia } from './setup';
 
-vi.mock('../src/services/firebase', () => ({
-  logoutFirebase: vi.fn().mockResolvedValue(undefined),
-  login: vi.fn(),
-  register: vi.fn(),
-  loginGoogle: vi.fn(),
-  authError: () => 'Sign-in failed',
-}));
+vi.mock('../src/services/firebase', async () => {
+  const { firebaseMock } = await import('./firebase-mock');
+  return firebaseMock;
+});
 beforeEach(() => {
+  resetFirebaseMock();
   endSession();
   vi.stubGlobal(
     'fetch',
@@ -71,11 +70,13 @@ it('navigates pages and restores shareable game/auth URLs without stacking dialo
   expect(document.querySelectorAll('dialog[open]')).toHaveLength(0);
 });
 it('guards direct Auth URLs, preserves other URL state and renders profile everywhere', async () => {
-  createSession({
+  const identity = {
     ...profile,
     displayName: 'Émile 王',
     avatarUrl: 'https://example.com/me.jpg',
-  });
+  };
+  setFirebaseIdentity(identity);
+  createSession(identity);
   history.replaceState(
     null,
     '',
@@ -106,7 +107,10 @@ it('guards direct Auth URLs, preserves other URL state and renders profile every
   ).toBe(true);
 });
 it('returns to authenticated Game Details after login without replaying the blocked action', async () => {
-  vi.mocked(login).mockResolvedValue(profile);
+  vi.mocked(login).mockImplementation(async () => {
+    setFirebaseIdentity(profile);
+    return profile;
+  });
   history.replaceState(null, '', '/?game=tiny-glade');
   startApp();
   await settle(1000);
@@ -129,7 +133,74 @@ it('returns to authenticated Game Details after login without replaying the bloc
       .mock.calls.filter(([, options]) => options?.method === 'POST'),
   ).toHaveLength(0);
 });
+
+it.each(['resolve', 'reject'])(
+  'closes a pending Auth dialog after cross-tab login and ignores its stale %s',
+  async (completion) => {
+    let resolveLogin: (value: typeof profile) => void = () => {};
+    let rejectLogin: (error: Error) => void = () => {};
+    vi.mocked(login).mockImplementationOnce(
+      () =>
+        new Promise((resolve, reject) => {
+          resolveLogin = resolve;
+          rejectLogin = reject;
+        }),
+    );
+    history.replaceState(
+      null,
+      '',
+      '/?auth=login&game=tiny-glade&category=cozy#details',
+    );
+    startApp();
+    await settle();
+    const dialog = required<HTMLDialogElement>(document, '.auth-dialog');
+    fill(dialog, 'email', profile.email);
+    fill(dialog, 'password', 'abcdef');
+    required<HTMLButtonElement>(dialog, '[type=submit]').click();
+    expect(dialog.getAttribute('aria-busy')).toBe('true');
+    const external = { displayName: 'OtherTab', email: 'other@example.com' };
+    const authenticatedAt = Date.now() - 250;
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ ...external, authenticatedAt }),
+    );
+    window.dispatchEvent(new Event('storage'));
+    setFirebaseIdentity(external);
+    await settle();
+    expect(dialog.open).toBe(false);
+    expect(dialog.getAttribute('aria-busy')).toBe('false');
+    expect(location.search).not.toContain('auth=');
+    expect(location.search).toContain('game=tiny-glade');
+    expect(location.search).toContain('category=cozy');
+    expect(location.hash).toBe('#details');
+    if (completion === 'resolve') resolveLogin(profile);
+    else rejectLogin(new Error('old login failed'));
+    await settle();
+    expect(getSession()).toEqual({ ...external, authenticatedAt });
+    expect(document.body.textContent).not.toContain('Sign-in failed');
+    expect(required<HTMLDialogElement>(document, '.game-details').open).toBe(
+      true,
+    );
+  },
+);
+
+it('returns every tab to guest mode when the app session is removed', async () => {
+  setFirebaseIdentity(profile);
+  createSession(profile);
+  history.replaceState(null, '', '/?game=tiny-glade');
+  startApp();
+  await settle();
+  localStorage.removeItem(SESSION_KEY);
+  window.dispatchEvent(new Event('storage'));
+  await settle(1000);
+  expect(document.querySelector('.app-header__profile')).toBeNull();
+  expect(getSession()).toBeNull();
+  expect(
+    required<HTMLTextAreaElement>(document, '.game-details textarea').disabled,
+  ).toBe(true);
+});
 it('checks edited expiration before protected actions and public navigation', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   history.replaceState(null, '', '/?game=tiny-glade');
   startApp();
@@ -191,6 +262,7 @@ it('supports mobile navigation, escape and desktop media cleanup', async () => {
 });
 
 it('does not create an extra history entry when an authenticated UI action requests Auth', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   startApp();
   await settle();

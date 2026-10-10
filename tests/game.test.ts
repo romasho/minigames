@@ -1,3 +1,4 @@
+import { resetFirebaseMock, setFirebaseIdentity } from './firebase-mock';
 import { it, expect, vi, beforeEach } from 'vitest';
 import {
   createGameDetailsDialog,
@@ -7,10 +8,12 @@ import { createSession, endSession } from '../src/features/auth/session';
 import { profile, comment, publicResponse, response } from './fixtures';
 import { required, settle } from './setup';
 
-vi.mock('../src/services/firebase', () => ({
-  logoutFirebase: vi.fn().mockResolvedValue(undefined),
-}));
+vi.mock('../src/services/firebase', async () => {
+  const { firebaseMock } = await import('./firebase-mock');
+  return firebaseMock;
+});
 beforeEach(() => {
+  resetFirebaseMock();
   endSession();
   vi.stubGlobal(
     'fetch',
@@ -66,6 +69,7 @@ it('guests request Auth for favorites and comment likes without a POST', async (
   game.close();
 });
 it('locks duplicate favorites, initializes personalized state and applies only server counts', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   let resolvePost: (value: Response) => void = () => {};
   vi.mocked(fetch).mockImplementation(async (url, options) =>
@@ -87,6 +91,7 @@ it('locks duplicate favorites, initializes personalized state and applies only s
   expect(favorite.getAttribute('aria-pressed')).toBe('false');
   favorite.click();
   favorite.click();
+  await settle(0);
   expect(favorite.disabled).toBe(true);
   expect(favorite.getAttribute('aria-busy')).toBe('true');
   expect(
@@ -104,6 +109,7 @@ it('locks duplicate favorites, initializes personalized state and applies only s
   game.close();
 });
 it('submits trimmed comments on Enter, clears on success and refreshes the full count', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   let posts = 0;
   vi.mocked(fetch).mockImplementation(async (url, options) => {
@@ -153,6 +159,7 @@ it('submits trimmed comments on Enter, clears on success and refreshes the full 
   game.close();
 });
 it('keeps draft and unlocks on rejection, reports unknown outcomes without replay', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   const game = await open();
   const input = required<HTMLTextAreaElement>(game.element, 'textarea');
@@ -177,6 +184,7 @@ it('keeps draft and unlocks on rejection, reports unknown outcomes without repla
   game.close();
 });
 it('updates likes using server state and ignores a response after logout', async () => {
+  setFirebaseIdentity(profile);
   createSession(profile);
   const game = await open();
   const like = required<HTMLButtonElement>(

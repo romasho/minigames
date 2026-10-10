@@ -6,7 +6,8 @@
   gap: ds.$size-1;
   min-width: 0;
 
-  > span:not(.app-header__avatar) {
+  &-name {
+    min-width: 0;
     max-width: ds.$size-15;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -49,6 +50,10 @@ $menu-close-rotation: -45deg;
 
   &__auth-actions {
     width: ds.$auth-actions;
+
+    &:has(.app-header__profile) {
+      width: auto;
+    }
   }
 
   &__inner {
@@ -188,6 +193,7 @@ $menu-close-rotation: -45deg;
   &__menu-toggle {
     position: relative;
     display: none;
+    flex-shrink: 0;
     width: ds.$size-4;
     height: ds.$size-4;
     padding: ds.$size-1;
@@ -263,6 +269,12 @@ $menu-close-rotation: -45deg;
     transform: rotate($menu-close-rotation);
   }
 
+  @media (width <=calc(#{ds.breakpoint('tablet')} + #{2 * ds.$size-10})) {
+    &__desktop-actions .app-header__profile-name {
+      display: none;
+    }
+  }
+
   @media (width <=calc(#{ds.breakpoint('tablet')} + #{ds.$classic-scrollbar-width})) {
     min-height: ds.$header-height-tablet;
 
@@ -287,6 +299,11 @@ $menu-close-rotation: -45deg;
     &__tablet-actions,
     &__menu-toggle {
       display: flex;
+    }
+
+    &__tablet-actions .app-header__profile-name,
+    &__tablet-actions .app-header__profile .app-header__button {
+      display: none;
     }
   }
 
@@ -374,6 +391,24 @@ $menu-close-rotation: -45deg;
   }
 
   &__actions .app-header__button--mobile-secondary {
+    background: ds.$color-white;
+  }
+
+  &__actions .app-header__profile {
+    display: grid;
+    grid-template-columns: ds.$size-5 minmax(0, 1fr);
+    gap: ds.$size-2;
+    color: ds.$color-on-footer;
+  }
+
+  &__actions .app-header__profile-name {
+    max-width: none;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  &__actions .app-header__profile .app-header__button {
+    grid-column: 1 / -1;
     background: ds.$color-white;
   }
 }
