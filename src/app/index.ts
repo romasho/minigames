@@ -10,6 +10,7 @@ import {
   subscribeSession,
 } from '../features/auth/session';
 import { notify } from '../components/feedback';
+import { createPwaControls } from './pwa-controls';
 
 function updateQuery(key: string, value: string | null): void {
   const url: URL = new URL(location.href);
@@ -30,7 +31,15 @@ export function startApp(): void {
     createGameDetailsDialog();
   let page: HTMLElement = router.start();
   let currentPath: string = getRoutePath();
-  root.append(header.element, page, createFooter(), gameDetails.element);
+  const pwaController: AbortController = new AbortController();
+  const pwaControls: HTMLElement = createPwaControls(pwaController.signal);
+  root.append(
+    header.element,
+    pwaControls,
+    page,
+    createFooter(),
+    gameDetails.element,
+  );
   document.body.append(root);
 
   const syncDialogs: () => void = (): void => {
@@ -38,12 +47,13 @@ export function startApp(): void {
     const parameters: URLSearchParams = new URLSearchParams(location.search);
     const slug: string | null = parameters.get('game');
     let auth: string | null = parameters.get('auth');
-    if (session && parameters.has('auth')) {
+    if (parameters.has('auth') && (session || !navigator.onLine)) {
       const url: URL = new URL(location.href);
       url.searchParams.delete('auth');
       history.replaceState(null, '', url);
       auth = null;
-      notify('You are already signed in.', 'success');
+      if (session) notify('You are already signed in.', 'success');
+      else notify('Signing in and creating an account require a connection.');
     }
     if (auth === AuthMode.Login || auth === AuthMode.Register) {
       gameDetails.suspend();
@@ -96,6 +106,10 @@ export function startApp(): void {
       return;
     const mode: unknown = detail.mode;
     if (mode !== AuthMode.Login && mode !== AuthMode.Register) return;
+    if (!navigator.onLine) {
+      notify('Signing in and creating an account require a connection.');
+      return;
+    }
     if (getSession()) {
       const url: URL = new URL(location.href);
       url.searchParams.delete('auth');
@@ -161,6 +175,7 @@ export function startApp(): void {
   addEventListener(
     'pagehide',
     (): void => {
+      pwaController.abort();
       unsubscribeSession();
       stopSession();
       page.dispatchEvent(new Event('page-disconnect'));

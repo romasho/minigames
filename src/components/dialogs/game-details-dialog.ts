@@ -229,6 +229,10 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     operation: () => Promise<void>,
   ): Promise<void> => {
     if (button.disabled) return;
+    if (!navigator.onLine) {
+      notify('Comments and favorites require a connection.', 'error', dialog);
+      return;
+    }
     if (!getSession()) {
       requestAuth();
       return;
@@ -339,7 +343,13 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
       heading.id = 'game-details-title';
       const description: HTMLElement = text('p', game.shortDescription);
       description.className = 'game-details__description';
-      content.append(heading, description);
+      content.append(
+        heading,
+        description,
+        emptyState(
+          'Connect to view comments and top records or change favorites.',
+        ),
+      );
       detailsSlot.replaceChildren(image, content);
       return;
     }
