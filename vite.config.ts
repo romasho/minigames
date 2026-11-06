@@ -1,9 +1,11 @@
 import { defineConfig, type UserConfig } from 'vite';
+import { precache } from './scripts/precache.ts';
 
 const config: UserConfig = {
   // GitHub Pages publishes this project at https://romasho.github.io/minigames/.
   // Vite needs the repository path to generate correct asset URLs in production.
   base: '/minigames/',
+  plugins: [precache()],
   build: {
     outDir: 'dist',
     sourcemap: true,
