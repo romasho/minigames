@@ -204,8 +204,11 @@ export function createNewGamesSection(): HTMLElement {
   );
 
   desktop.addEventListener('change', render);
-  const controller: AbortController = new AbortController();
+  let activeRequest: AbortController | undefined;
   const load = async (): Promise<void> => {
+    activeRequest?.abort();
+    const controller = new AbortController();
+    activeRequest = controller;
     stopTimer();
     const startedAt: number = performance.now();
     track.replaceChildren(skeleton('Loading featured games', 'carousel'));
@@ -221,6 +224,7 @@ export function createNewGamesSection(): HTMLElement {
       track.replaceChildren(
         ...(cards.length > 0 ? cards : [emptyState('No featured games yet.')]),
       );
+      center %= Math.max(1, cards.length);
       render();
       schedule(interval);
     } catch {
@@ -234,12 +238,19 @@ export function createNewGamesSection(): HTMLElement {
       notify('Could not load featured games.');
     }
   };
-  void load();
+  const reload = (): void => {
+    void load();
+  };
+  addEventListener('online', reload);
+  addEventListener('offline', reload);
+  reload();
   section.addEventListener(
     'page-disconnect',
     (): void => {
       stopTimer();
-      controller.abort();
+      activeRequest?.abort();
+      removeEventListener('online', reload);
+      removeEventListener('offline', reload);
       desktop.removeEventListener('change', render);
       removeEventListener('pointerup', finishPointer);
       removeEventListener('pointercancel', finishPointer);

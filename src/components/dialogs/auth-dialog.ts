@@ -179,6 +179,13 @@ export function createAuthDialog(): AuthDialogController {
     operation: () => Promise<Profile>,
   ): Promise<void> => {
     if (isPending) return;
+    if (!navigator.onLine) {
+      setStatus(
+        'Signing in and creating an account require a connection.',
+        true,
+      );
+      return;
+    }
     const attempt: number = ++authAttempt;
     setPending(true);
     setStatus('Signing in…');

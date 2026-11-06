@@ -15,6 +15,41 @@ Vite serves the development build with hot module replacement. Use
 `npm run build` for a type-checked, optimized production bundle in `dist` and
 `npm run preview` to inspect that bundle locally.
 
+## Install and browse offline (Story 5)
+
+Run `npm run build` and `npm run preview`, then open
+`http://localhost:4173/minigames/`. The Service Worker runs in the production
+build on localhost or HTTPS. After the first online visit finishes preparing
+the cache, the home page, library, and short game cards are available offline.
+The library uses the bundled snapshot of 24 games and still supports category
+filters, sorting, and six games per page. Account actions, comments, favorites,
+and current player records need a connection. When the browser comes back
+online, the open page fetches live data again.
+
+1. Open the home page in a clean browser profile. In Chrome or Edge, check
+   **Application → Service workers** and wait for the worker to activate and
+   control the page. Leave **Bypass for network** unchecked.
+2. Use **Install MiniGames** when the browser offers it. On iPhone, open the
+   HTTPS site in Safari and tap **Share → Add to Home Screen**. Open the app
+   from its icon once while still online so it can prepare its offline cache.
+3. Close the tab, disconnect the device, and launch MiniGames from its icon.
+   Check the offline notice and open the library for the first time. Select
+   **Puzzle**, change the sort order, go to page 2, and open a game. Its cover
+   and short description should appear along with a note about online actions.
+   With the browser offline, also open `/minigames/library` directly in a new
+   tab. If using DevTools to emulate offline mode, enable it in that tab before
+   entering the URL.
+4. Reconnect while the library is open. The offline notice should disappear and
+   the library should request live data from the API.
+5. To verify an update, serve a changed production build at the same URL and
+   use **Update** under **Application → Service workers**. Close all MiniGames
+   tabs and installed windows, then reopen the app. The new worker should be
+   active and **Cache Storage** should show one current `minigames-shell` cache
+   for that scope.
+
+Run `npm run validate`, `npm run test:coverage`, and `npm run build` before the
+demo.
+
 ## Firebase Authentication (Story 4)
 
 Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/), register a Web app, and copy `.env.example` to `.env.local`. Fill in the four `VITE_FIREBASE_*` values from the Web app configuration. These identify the public Firebase Web app; never use service-account keys here.

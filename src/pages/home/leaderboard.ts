@@ -125,10 +125,17 @@ export function createLeaderboardSection(): HTMLElement {
   const formatter = new Intl.NumberFormat('en-US');
   table.append(caption, columnGroup, header, body);
   section.append(heading, table);
-  const controller: AbortController = new AbortController();
+  let activeRequest: AbortController | undefined;
   const load = async (): Promise<void> => {
+    activeRequest?.abort();
     table.hidden = true;
     section.querySelector('.api-skeleton, .api-error, .api-empty')?.remove();
+    if (!navigator.onLine) {
+      section.append(emptyState('Connect to see the latest leaderboard.'));
+      return;
+    }
+    const controller: AbortController = new AbortController();
+    activeRequest = controller;
     const startedAt: number = performance.now();
     section.append(skeleton('Loading leaderboard', 'leaderboard'));
     try {
@@ -163,11 +170,18 @@ export function createLeaderboardSection(): HTMLElement {
       notify('Could not load leaderboard.');
     }
   };
-  void load();
+  const reload = (): void => {
+    void load();
+  };
+  addEventListener('online', reload);
+  addEventListener('offline', reload);
+  reload();
   section.addEventListener(
     'page-disconnect',
     (): void => {
-      controller.abort();
+      activeRequest?.abort();
+      removeEventListener('online', reload);
+      removeEventListener('offline', reload);
     },
     {
       once: true,
