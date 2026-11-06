@@ -1,3 +1,9 @@
+import {
+  offlineCategories,
+  offlineFeaturedGames,
+  offlineGames,
+} from '../data/offline-catalog';
+
 const API_BASE: URL = new URL(
   'https://faxb76kxra.execute-api.eu-central-1.amazonaws.com',
 );
@@ -140,7 +146,9 @@ export function gameImage(path: string): string {
 export async function getFeaturedGames(
   signal?: AbortSignal,
 ): Promise<GameSummary[]> {
-  return parseList(await get('/api/games?featured=true', signal), isGame);
+  return navigator.onLine
+    ? parseList(await get('/api/games?featured=true', signal), isGame)
+    : offlineFeaturedGames();
 }
 export async function getLeaderboard(
   signal?: AbortSignal,
@@ -148,7 +156,9 @@ export async function getLeaderboard(
   return parseList(await get('/api/leaderboard', signal), isLeader);
 }
 export async function getCategories(signal?: AbortSignal): Promise<Category[]> {
-  return parseList(await get('/api/categories', signal), isCategory);
+  return navigator.onLine
+    ? parseList(await get('/api/categories', signal), isCategory)
+    : offlineCategories();
 }
 export async function getGames(
   category: string,
@@ -162,6 +172,8 @@ export async function getGames(
     page: String(page),
     limit: '6',
   });
+  if (!navigator.onLine)
+    return offlineGames(category, sort, page, Number(parameters.get('limit')));
   const value: unknown = await get(
     `/api/games?${parameters.toString()}`,
     signal,

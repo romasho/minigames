@@ -151,7 +151,12 @@ export function startApp(): void {
     syncRoute();
   });
 
+  const refreshDetails: () => void = (): void => {
+    gameDetails.refresh();
+  };
   addEventListener('popstate', syncRoute);
+  addEventListener('online', refreshDetails);
+  addEventListener('offline', refreshDetails);
   syncDialogs();
   addEventListener(
     'pagehide',
@@ -161,6 +166,8 @@ export function startApp(): void {
       page.dispatchEvent(new Event('page-disconnect'));
       header.destroy();
       removeEventListener('popstate', syncRoute);
+      removeEventListener('online', refreshDetails);
+      removeEventListener('offline', refreshDetails);
     },
     { once: true },
   );

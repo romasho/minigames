@@ -163,7 +163,7 @@ export function createLibraryPage(): HTMLElement {
   let categories: Category[] = [];
   let categoryLoadState: 'loading' | 'error' | 'ready' = 'loading';
   let gameController: AbortController | undefined;
-  const categoryController: AbortController = new AbortController();
+  let categoryController: AbortController | undefined;
   const media: MediaQueryList = matchMedia('(max-width: 600px)');
   let currentMeta: GamesResult['meta'] = {
     page: 1,
@@ -337,15 +337,19 @@ export function createLibraryPage(): HTMLElement {
     void loadGames();
   };
   const loadCategories: () => Promise<void> = async (): Promise<void> => {
+    categoryController?.abort();
+    const controller: AbortController = new AbortController();
+    categoryController = controller;
     categoryLoadState = 'loading';
     renderControls();
     const startedAt: number = performance.now();
     try {
-      categories = await withSkeleton(
-        getCategories(categoryController.signal),
+      const nextCategories: Category[] = await withSkeleton(
+        getCategories(controller.signal),
         startedAt,
       );
-      if (categoryController.signal.aborted) return;
+      if (controller.signal.aborted) return;
+      categories = nextCategories;
       categoryLoadState = 'ready';
       defaultCategory =
         categories.find((item: Category): boolean => item.isDefault)?.slug ??
@@ -360,7 +364,7 @@ export function createLibraryPage(): HTMLElement {
       renderControls();
       if (isCategoryChanged) void loadGames();
     } catch {
-      if (categoryController.signal.aborted) return;
+      if (controller.signal.aborted) return;
       categoryLoadState = 'error';
       renderControls();
       notify('Could not load categories.');
@@ -381,18 +385,25 @@ export function createLibraryPage(): HTMLElement {
   });
   page.addEventListener('route-change', syncFromUrl);
   media.addEventListener('change', renderPagination);
+  const reload: () => void = (): void => {
+    void loadCategories();
+    void loadGames();
+  };
+  addEventListener('online', reload);
+  addEventListener('offline', reload);
   page.addEventListener(
     'page-disconnect',
     (): void => {
       gameController?.abort();
-      categoryController.abort();
+      categoryController?.abort();
+      removeEventListener('online', reload);
+      removeEventListener('offline', reload);
       media.removeEventListener('change', renderPagination);
     },
     { once: true },
   );
   renderControls();
   renderPagination();
-  void loadCategories();
-  void loadGames();
+  reload();
   return page;
 }

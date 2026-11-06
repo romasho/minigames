@@ -5,7 +5,12 @@ import {
   skeleton,
   withSkeleton,
 } from '../feedback';
-import { formatLikes } from '../../data/games';
+import {
+  formatLikes,
+  getCardImage,
+  SEED_GAMES,
+  type SeedGame,
+} from '../../data/games';
 import {
   ApiError,
   gameImage,
@@ -314,6 +319,30 @@ export function createGameDetailsDialog(): GameDetailsDialogController {
     slug: string,
     signal: AbortSignal,
   ): Promise<void> => {
+    if (!navigator.onLine) {
+      const game: SeedGame | undefined = SEED_GAMES.find(
+        (candidate: SeedGame): boolean => candidate.slug === slug,
+      );
+      if (!game) {
+        detailsSlot.replaceChildren(
+          emptyState('This game is unavailable offline.'),
+        );
+        return;
+      }
+      const image: HTMLImageElement = document.createElement('img');
+      image.className = 'game-details__image';
+      image.src = getCardImage(game);
+      image.alt = `${game.name} game artwork`;
+      const content: HTMLDivElement = document.createElement('div');
+      content.className = 'game-details__content';
+      const heading: HTMLElement = text('h2', game.name);
+      heading.id = 'game-details-title';
+      const description: HTMLElement = text('p', game.shortDescription);
+      description.className = 'game-details__description';
+      content.append(heading, description);
+      detailsSlot.replaceChildren(image, content);
+      return;
+    }
     const startedAt: number = performance.now();
     detailsSlot.replaceChildren(skeleton('Loading game details', 'details'));
     try {
